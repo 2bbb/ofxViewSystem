@@ -60,10 +60,10 @@ namespace bbb {
             std::function<void(const std::string &)> callback;
             float startTime, endTime;
             animation(std::function<void(float progress)> animationCallback,
-                   float duration,
-                   float delay,
-                   const std::string &label,
-                   const std::function<void(const std::string &)> &callback)
+                      float duration,
+                      float delay,
+                      const std::string &label,
+                      const std::function<void(const std::string &)> &callback)
                 : animationCallback(animationCallback)
                 , duration(duration)
                 , delay(delay)
@@ -76,12 +76,32 @@ namespace bbb {
             
         public:
             inline static void add(std::function<void(float)> animationCallback,
-                            float duration,
-                            float delay,
-                            const std::string &label = "",
-                            const std::function<void(const std::string &)> &callback = [](const std::string &){})
+                                   float duration,
+                                   float delay = 0.0f,
+                                   const std::string &label = "",
+                                   const std::function<void(const std::string &)> &callback = [](const std::string &){})
             {
                 manager::get().add(std::shared_ptr<animation>(new animation(animationCallback, duration, delay, label, callback)), label);
+            }
+            inline static void add(std::function<void(float)> animationCallback,
+                                   float duration,
+                                   const std::string &label,
+                                   const std::function<void(const std::string &)> &callback = [](const std::string &){})
+            {
+                add(animationCallback, duration, 0.0f, "", callback);
+            }
+            inline static void add(std::function<void(float)> animationCallback,
+                                   float duration,
+                                   float delay,
+                                   const std::function<void(const std::string &)> &callback)
+            {
+                add(animationCallback, duration, delay, "", callback);
+            }
+            inline static void add(std::function<void(float)> animationCallback,
+                                   float duration,
+                                   const std::function<void(const std::string &)> &callback)
+            {
+                add(animationCallback, duration, 0.0f, "", callback);
             }
             
             inline static void remove(const std::string &label) {
