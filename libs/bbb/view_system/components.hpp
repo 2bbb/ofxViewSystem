@@ -23,7 +23,39 @@ namespace bbb {
     namespace view_system {
         namespace components {
             struct view;
-            static void click_default(std::shared_ptr<view>, const ofPoint &p) {};
+            using view_ref = std::shared_ptr<view>;
+            
+            struct event_arg {
+                event_arg(view_ref target)
+                : target(target) {};
+                
+                view_ref target;
+            };
+            struct mouse_event_arg : public event_arg {
+                mouse_event_arg(view_ref target, ofPoint p, bool isInside)
+                : event_arg(target)
+                , p(p)
+                , isInside(isInside) {};
+                
+                ofPoint p;
+                bool isInside;
+            };
+            
+            struct resized_event_arg : public event_arg {
+                resized_event_arg(view_ref target, const ofRectangle &rect)
+                : event_arg(target)
+                , rect(rect) {};
+                
+                ofRectangle rect;
+            };
+            
+            using click_down_callback_t = std::function<void(mouse_event_arg)>;
+            using click_up_callback_t = std::function<void(mouse_event_arg)>;
+            using mouse_over_callback_t = std::function<void(mouse_event_arg)>;
+            using window_resized_callback_t = std::function<void(resized_event_arg)>;
+            
+            static void mouse_default(mouse_event_arg) {};
+            static void resized_default(resized_event_arg) {};
             
             struct view : public std::enable_shared_from_this<view> {
                 using ref = std::shared_ptr<view>;
@@ -140,16 +172,20 @@ namespace bbb {
                     return p;
                 }
                 
-                inline void onClickDown(std::function<void(view::ref, ofPoint)> callback) {
+                inline void onClickDown(std::function<void(mouse_event_arg)> callback) {
                     clickDownCallback = callback;
                 }
                 
-                inline void onClickUp(std::function<void(view::ref, ofPoint)> callback) {
+                inline void onClickUp(std::function<void(mouse_event_arg)> callback) {
                     clickUpCallback = callback;
                 }
                 
-                inline void onMouseOver(std::function<void(view::ref, ofPoint)> callback) {
+                inline void onMouseOver(std::function<void(mouse_event_arg)> callback) {
                     mouseOverCallback = callback;
+                }
+                
+                inline void onWindowResized(std::function<void(resized_event_arg)> callback) {
+                    windowResizedCallback = callback;
                 }
                 
                 inline bool isInside(const ofPoint &p) const {
@@ -225,6 +261,7 @@ namespace bbb {
                     ofAddListener(events.mouseReleased, this, &view::mouseReleased, OF_EVENT_ORDER_BEFORE_APP);
                     ofAddListener(events.mouseMoved, this, &view::mouseMoved, OF_EVENT_ORDER_BEFORE_APP);
                     ofAddListener(events.mouseDragged, this, &view::mouseDragged, OF_EVENT_ORDER_BEFORE_APP);
+                    ofAddListener(events.windowResized, this, &view::windowResizedRoot, OF_EVENT_ORDER_BEFORE_APP);
                 }
                 
                 void unregisterEvents() {
@@ -233,6 +270,7 @@ namespace bbb {
                     ofRemoveListener(events.mouseReleased, this, &view::mouseReleased);
                     ofRemoveListener(events.mouseMoved, this, &view::mouseMoved);
                     ofRemoveListener(events.mouseDragged, this, &view::mouseDragged);
+                    ofRemoveListener(events.windowResized, this, &view::windowResizedRoot);
                 }
             protected:
                 void mousePressed(ofMouseEventArgs &arg) {
@@ -251,13 +289,16 @@ namespace bbb {
                     if(!isVisible) return;
                     mouseOver(ofPoint(arg.x, arg.y));
                 }
-
+                void windowResizedRoot(ofResizeEventArgs &arg) {
+                    windowResized({shared_from_this(), {ofPoint(), (float)arg.width, (float)arg.height}});
+                }
+                
                 inline bool clickDown(const ofPoint &p) {
                     if(!isVisible) return false;
                     for(auto &&subview : subviews) if(subview->clickDown(p)) return true;
                     if(isEnabledUserInteraction_ && isInside(p)) {
                         isClickedNow_ = true;
-                        clickDownCallback(shared_from_this(), p);
+                        clickDownCallback({shared_from_this(), p, false});
                         return !isEventTransparent();
                     }
                     return false;
@@ -268,7 +309,7 @@ namespace bbb {
                     for(auto &&subview : subviews) if(subview->clickUp(p)) return true;
                     if((isEnabledUserInteraction_ && isInside(p)) || isClickedNow_) {
                         isClickedNow_ = false;
-                        clickUpCallback(shared_from_this(), p);
+                        clickUpCallback({shared_from_this(), p, false});
                         return !isEventTransparent();
                     }
                     return false;
@@ -278,7 +319,7 @@ namespace bbb {
                     if(!isVisible) return;
                     for(auto &&subview : subviews) subview->mouseOver(p);
                     if((isEnabledUserInteraction_ && isInside(p))) {
-                        mouseOverCallback(shared_from_this(), p);
+                        mouseOverCallback({shared_from_this(), p, false});
                     }
                 }
                 
@@ -309,6 +350,17 @@ namespace bbb {
                 
                 virtual void drawSpecific() const {};
                 
+                inline void windowResized(resized_event_arg super_arg) {
+                    windowResizeSpecific(super_arg);
+                    for(auto &&subview : subviews) {
+                        subview->windowResized({subview, {position, width, height}});
+                    }
+                }
+                
+                virtual void windowResizeSpecific(resized_event_arg arg) {
+                    windowResizedCallback(arg);
+                };
+                
                 ofPoint position;
                 float width;
                 float height;
@@ -316,11 +368,13 @@ namespace bbb {
                 ofFloatColor backgroundColor{0.0f, 0.0f, 0.0f, 0.0f};
                 float alpha{1.0f};
                 
-                std::function<void(view::ref, ofPoint)> clickDownCallback{click_default};
-                std::function<void(view::ref, ofPoint)> clickUpCallback{click_default};
-                std::function<void(view::ref, ofPoint)> mouseOverCallback{click_default};
-                std::function<void(view::ref, ofPoint)> draggedCallback{click_default};
-
+                std::function<void(mouse_event_arg)> clickDownCallback{mouse_default};
+                std::function<void(mouse_event_arg)> clickUpCallback{mouse_default};
+                std::function<void(mouse_event_arg)> mouseOverCallback{mouse_default};
+                std::function<void(mouse_event_arg)> draggedCallback{mouse_default};
+                
+                std::function<void(resized_event_arg)> windowResizedCallback{resized_default};
+                
                 std::string name{""};
                 std::vector<view::ref> subviews;
                 std::weak_ptr<view> parent{};
