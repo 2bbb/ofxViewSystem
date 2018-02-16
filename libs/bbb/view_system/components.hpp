@@ -140,6 +140,12 @@ namespace bbb {
                     subviews.erase(eraser, end);
                 }
                 
+                inline void removeFromParent() {
+                    auto &&parent = getParent();
+                    if(parent) parent->remove(shared_from_this());
+                    else ofLogWarning() << "maybe this view [" << getName() << "] is root";
+                }
+                
                 inline void setOrigin(float x, float y) {
                     position.x = x;
                     position.y = y;
