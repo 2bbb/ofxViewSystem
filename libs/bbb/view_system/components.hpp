@@ -36,6 +36,16 @@ namespace bbb {
                 margin(float m = 0.0f)
                 : margin(m, m, m, m) {};
                 
+                inline void set(float margin) { set(margin, margin, margin, margin); };
+                inline void set(float vertical, float horizontal) { set(vertical, horizontal, vertical, horizontal); };
+                inline void set(float top, float h, float bottom) { set(top, h, bottom, h); };
+                inline void set(float top, float right, float bottom, float left) {
+                    this->top = top;
+                    this->right = right;
+                    this->bottom = bottom;
+                    this->left = left;
+                };
+
                 float top;
                 float right;
                 float bottom;
@@ -76,8 +86,9 @@ namespace bbb {
             using mouse_over_callback_t = std::function<void(mouse_event_arg)>;
             using window_resized_callback_t = std::function<void(resized_event_arg)>;
             
-            static void mouse_default(mouse_event_arg) {};
-            static void resized_default(resized_event_arg) {};
+            static void mouse_default(mouse_event_arg);
+            static void resized_default(resized_event_arg arg);
+            static void fitToParent(resized_event_arg arg);
             
             struct view : public std::enable_shared_from_this<view> {
                 using ref = std::shared_ptr<view>;
@@ -127,9 +138,17 @@ namespace bbb {
                 
                 inline view() {};
                 inline view(const view::setting &setting_)
-                : setting_(setting_) {};
+                : setting_(setting_)
+                , position(setting_.frame.position)
+                {
+                    calculateLayout();
+                };
                 inline view(view::setting &&setting_)
-                : setting_(std::move(setting_)) {};
+                : setting_(std::move(setting_))
+                , position(setting_.frame.position)
+                {
+                    calculateLayout();
+                };
 
                 inline view(float x, float y, float width, float height, const layout::margin &margin = {})
                 : view({{x, y, width, height}, margin})
@@ -281,11 +300,37 @@ namespace bbb {
                 inline void move(const ofPoint &p) { position += p; }
                 inline void move(float x, float y) { position.x += x, position.y += y; }
                 
-                inline float &getWidth() { return getSetting().frame.width; };
                 inline float getWidth() const { return width; };
+                inline void setWidth(float width) {
+                    getSetting().frame.width = width;
+                    calculateLayout();
+                }
                 
-                inline float &getHeight() { return height; };
                 inline float getHeight() const { return height; };
+                inline void setHeight(float height) {
+                    getSetting().frame.height = height;
+                    calculateLayout();
+                };
+
+                inline float setSize(float width, float height) {
+                    getSetting().frame.width = width;
+                    getSetting().frame.height = width;
+                    calculateLayout();
+                }
+                
+                inline void calculateLayout() {
+                    auto &margin = getSetting().margin;
+                    width = getSetting().frame.width - margin.right - margin.left;
+                    height = getSetting().frame.height - margin.top - margin.bottom;
+                }
+                
+                inline void setMargin(float margin) { setMargin(margin, margin, margin, margin); };
+                inline void setMargin(float vertical, float horizontal) { setMargin(vertical, horizontal, vertical, horizontal); };
+                inline void setMargin(float top, float h, float bottom) { setMargin(top, h, bottom, h); };
+                inline void setMargin(float top, float right, float bottom, float left) {
+                    getSetting().margin.set(top, right, bottom, left);
+                    calculateLayout();
+                };
                 
                 inline view::ref getParent() { return parent.lock(); };
                 inline view::const_ref getParent() const { return parent.lock(); };
@@ -308,7 +353,7 @@ namespace bbb {
                 void draw() const {
                     if(!isShown()) return;
                     pushState();
-                    ofTranslate(position);
+                    ofTranslate(position + ofPoint(getSetting().margin.left, getSetting().margin.top));
                     drawBackground();
                     drawSpecific();
                     drawSubviews();
@@ -440,6 +485,12 @@ namespace bbb {
                 std::weak_ptr<view> parent{};
             };
             
+            static void mouse_default(mouse_event_arg) {};
+            static void resized_default(resized_event_arg arg) {};
+            static void fitToParent(resized_event_arg arg) {
+                arg.target->setSize(arg.rect.width, arg.rect.height);
+            };
+
             struct image : public view {
                 using ref = std::shared_ptr<image>;
                 
@@ -491,8 +542,8 @@ namespace bbb {
                 virtual ~image() {};
                 
                 inline void fitToImage() {
-                    getWidth() = image_.getWidth();
-                    getHeight() = image_.getHeight();
+                    setWidth(image_.getWidth());
+                    setHeight(image_.getHeight());
                 }
                 
                 virtual void drawSpecific() const override {
