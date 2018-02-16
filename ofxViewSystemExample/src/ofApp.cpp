@@ -8,8 +8,10 @@ class ofApp : public ofBaseApp {
     bbb::vs::view::ref root;
     
     void setupRootView() {
-        root = bbb::vs::view::create(20, 20, ofGetWidth() - 40, ofGetHeight() - 40);
-        root->setBackgroundColor(255, 0, 0, 128);
+        bbb::vs::view::setting setting(0, 0, ofGetWidth(), ofGetHeight());
+        setting.backgroundColor.set(1.0f, 0.0f, 0.0f, 0.5f);
+        setting.margin.set(20, 20, 20, 20);
+        root = bbb::vs::view::create(setting);
         root->onClickDown([](bbb::vs::mouse_event_arg arg) {
             auto v = arg.target;
             auto &&p = arg.p;
@@ -18,11 +20,7 @@ class ofApp : public ofBaseApp {
             c.r = 255 - c.r;
             c.b = 255 - c.b;
         });
-        root->onWindowResized([](bbb::vs::resized_event_arg arg) {
-            auto v = arg.target;
-            v->getWidth() = arg.rect.width - 40;
-            v->getHeight() = arg.rect.height - 40;
-        });
+        root->onWindowResized(bbb::vs::fitToParent);
         root->onMouseOver([](bbb::vs::mouse_event_arg arg) {
             auto v = arg.target;
             if(v->isClickedNow()) {
@@ -33,7 +31,9 @@ class ofApp : public ofBaseApp {
     }
     
     bbb::vs::view::ref createCloseButton() const {
-        auto &&button = bbb::vs::drawer::create(0, 0, 20, 20);
+        bbb::vs::drawer::setting setting(ofRectangle(0, 0, 20, 20));
+        setting.backgroundColor.set(0.0f, 0.0f, 0.0f);
+        auto &&button = bbb::vs::drawer::create(setting);
         button->onClickDown([](bbb::vs::mouse_event_arg arg) {
             auto &&v = arg.target;
             auto &&subview = v->getParent();
@@ -49,16 +49,17 @@ class ofApp : public ofBaseApp {
             ofDrawLine(0, 0, drawer->getWidth(), drawer->getHeight());
             ofDrawLine(drawer->getWidth(), 0, 0, drawer->getHeight());
         });
-        button->setBackgroundColor(0, 0, 0);
         return button;
     }
     
     bbb::vs::view::ref createSubView() const {
         static const char subview_moving_animation_name[] = "subview_move";
+        bbb::vs::drawer::setting setting(ofRectangle(0, 0, root->getWidth(), root->getHeight()));
+        setting.margin = {80.0f};
+        setting.backgroundColor.set(1.0f, 1.0f, 1.0f, 0.5f);
+        setting.isEventTransparent = true;
         
-        auto &&subview = bbb::vs::drawer::create(80, 80, root->getWidth() - 160, root->getHeight() - 160);
-        subview->setEventTransparentness(true);
-        subview->setBackgroundColor(255, 255, 255, 128);
+        auto &&subview = bbb::vs::drawer::create(setting);
         subview->onDraw([](bbb::vs::drawer::const_ref v) {
             const float w = v->getWidth(), h = v->getHeight(), d = (w - h) * 0.5f;
             ofSetColor(0, 255, 0, v->getAlpha() * 255.0f);
@@ -71,14 +72,14 @@ class ofApp : public ofBaseApp {
                            (z * std::sin(1.7f * x + 2.5f * t) + 0.5f) * h);
             }
         });
+        
         auto &&closeButton = createCloseButton();
         closeButton->setPosition({subview->getWidth() - 10.0f, -10.0f});
         
         subview->add(close_button_tag, closeButton);
         subview->onWindowResized([](bbb::vs::resized_event_arg arg) {
             auto v = arg.target;
-            v->getWidth() = arg.rect.width - 160;
-            v->getHeight() = arg.rect.height - 160;
+            v->setSize(arg.rect.width, arg.rect.height);
             v->getSubview(close_button_tag)->setPosition({v->getWidth() - 10.0f, -10.0f});
         });
 
