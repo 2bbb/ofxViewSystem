@@ -117,7 +117,7 @@ namespace bbb {
                     auto &&result = std::find_if(subviews.begin(), subviews.end(), [&](view::ref v) {
                         return v->name == name;
                     });
-                    return *result ? *result : view::ref();
+                    return (result == subviews.end()) ? view::ref() : *result;
                 }
                 
                 inline void remove(const std::string &name) {
@@ -230,7 +230,8 @@ namespace bbb {
                 
                 inline view::ref getParent() { return parent.lock(); };
                 inline view::const_ref getParent() const { return parent.lock(); };
-
+                inline view::ref getSubview(const std::string &name) { return find(name); };
+                
                 inline float left() const { return convertToGlobalCoordinate().x; };
                 inline float right() const { return left() + width; };
                 inline float top() const { return convertToGlobalCoordinate().y; };
