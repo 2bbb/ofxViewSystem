@@ -9,6 +9,11 @@
 
 #include <cmath>
 
+#ifndef _USE_MATH_DEFINES
+#   define _USE_MATH_DEFINES
+#endif
+#include <math.h>
+
 namespace bbb {
     namespace view_system {
         namespace easing {
