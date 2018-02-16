@@ -21,6 +21,28 @@
 
 namespace bbb {
     namespace view_system {
+        
+        namespace layout {
+            struct margin {
+                margin(float top, float right, float bottom, float left)
+                : top(top)
+                , right(right)
+                , bottom(bottom)
+                , left(left) {};
+                margin(float top, float h, float bottom)
+                : margin(top, h, bottom, h) {};
+                margin(float v, float h)
+                : margin(v, h, v, h) {};
+                margin(float m = 0.0f)
+                : margin(m, m, m, m) {};
+                
+                float top;
+                float right;
+                float bottom;
+                float left;
+            };
+        };
+        
         namespace components {
             struct view;
             using view_ref = std::shared_ptr<view>;
@@ -72,26 +94,45 @@ namespace bbb {
                 }
 
                 struct setting {
+                    setting(float x, float y, float width, float height, const layout::margin &margin = {})
+                    : frame(x, y, width, height)
+                    , margin(margin) {};
+                    
+                    setting(const ofRectangle &frame = {}, const layout::margin &margin = {})
+                    : setting(frame.x, frame.y, frame.width, frame.height, margin) {};
+                    
                     ofRectangle frame{0.0f, 0.0f, 0.0f, 0.0f};
+                    layout::margin margin{0.0f};
+                    
+                    bool isVisible{true};
+                    bool isEventTransparent{false};
+                    bool isEnabledUserInteraction{true};
+                    bool isResizable{false};
+                    
+                    ofFloatColor backgroundColor{0.0f, 0.0f, 0.0f, 0.0f};
+                    float alpha{1.0f};
                 };
                 
-                inline static view::ref create() {
-                    return create(0.0f, 0.0f, 0.0f, 0.0f);
+                inline static view::ref create(const ofRectangle &rect, const layout::margin &margin = {0.0f}) {
+                    return create({rect, margin});
                 }
                 
-                inline static view::ref create(const ofRectangle &rect) {
-                    return create(rect.x, rect.y, rect.width, rect.height);
-                }
-                
-                inline static view::ref create(float x, float y, float width, float height) {
-                    return std::make_shared<view>(x, y, width, height);
+                inline static view::ref create(float x, float y, float width, float height, const layout::margin &margin = {}) {
+                    return create({{x, y, width, height}, margin});
                 };
+                
+                inline static view::ref create(const view::setting &setting_ = {}) {
+                    return std::make_shared<view>(setting_);
+                }
                 
                 inline view() {};
-                inline view(float x, float y, float width, float height)
-                    : position(x, y)
-                    , width(width)
-                    , height(height)
+                inline view(const view::setting &setting_)
+                : setting_(setting_) {};
+                inline view(view::setting &&setting_)
+                : setting_(std::move(setting_)) {};
+
+                inline view(float x, float y, float width, float height, const layout::margin &margin = {})
+                : view({{x, y, width, height}, margin})
                 {};
                 
                 virtual ~view() {
@@ -146,25 +187,37 @@ namespace bbb {
                     else ofLogWarning() << "maybe this view [" << getName() << "] is root";
                 }
                 
+                inline setting &getSetting() { return setting_; }
+                inline const setting &getSetting() const { return setting_; }
+
                 inline void setOrigin(float x, float y) {
                     position.x = x;
                     position.y = y;
                 }
                 inline void setOrigin(const ofPoint &p) { setOrigin(p.x, p.y); }
                 
-                inline bool isShown() const { return isVisible; };
-                inline void setVisible(bool isVisible) { this->isVisible = isVisible; };
+                inline bool isShown() const { return getSetting().isVisible; };
+                inline void setVisible(bool isVisible) { getSetting().isVisible = isVisible; };
                 inline void show() { setVisible(true); };
                 inline void hide() { setVisible(false); };
                 
-                inline void setEventTransparentness(bool isEventTransparent) {
-                    isEventTransparent_ = isEventTransparent;
-                }
-                inline bool isEventTransparent() const { return isEventTransparent_; };
+                inline bool isResizable() const {
+                    ofLogWarning() << "feature of resizing: not implemented";
+                    return getSetting().isResizable;
+                };
+                inline bool setEnableResize(bool isResizable) {
+                    ofLogWarning() << "feature of resizing: not implemented";
+                    return getSetting().isResizable = isResizable;
+                };
 
-                inline bool isEnabledUserInteraction() const { return isEnabledUserInteraction_; };
-                inline void enableUserInteraction() { isEnabledUserInteraction_ = true; };
-                inline void disableUserInteraction() { isEnabledUserInteraction_ = false; };
+                inline void setEventTransparentness(bool isEventTransparent) {
+                    getSetting().isEventTransparent = isEventTransparent;
+                }
+                inline bool isEventTransparent() const { return getSetting().isEventTransparent; };
+
+                inline bool isEnabledUserInteraction() const { return getSetting().isEnabledUserInteraction; };
+                inline void enableUserInteraction() { getSetting().isEnabledUserInteraction = true; };
+                inline void disableUserInteraction() { getSetting().isEnabledUserInteraction = false; };
 
                 inline bool isClickedNow() const { return isClickedNow_; };
                 
@@ -202,20 +255,23 @@ namespace bbb {
                 inline auto setBackgroundColor(integer_t r, integer_t g, integer_t b, integer_t a = 255)
                     -> typename std::enable_if<std::is_integral<integer_t>::value>::type
                 {
-                    backgroundColor.set(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+                    getSetting().backgroundColor.set(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
                 }
                 inline void setBackgroundColor(float r, float g, float b, float a = 1.0f) {
-                    backgroundColor.set(r, g, b, a);
+                    getSetting().backgroundColor.set(r, g, b, a);
                 }
                 inline void setBackgroundColor(const ofFloatColor &c) { setBackgroundColor(c.r, c.g, c.b, c.a); };
                 inline void setBackgroundColor(const ofColor &c) { setBackgroundColor(c.r, c.g, c.b, c.a); };
 
-                inline ofFloatColor &getBackgroundColor() { return backgroundColor; };
-                inline const ofFloatColor &getBackgroundColor() const { return backgroundColor; };
+                inline ofFloatColor &getBackgroundColor() { return getSetting().backgroundColor; };
+                inline const ofFloatColor &getBackgroundColor() const { return getSetting().backgroundColor; };
 
-                inline float getAlpha() const { return getParent().get() ? (getParent()->getAlpha() * alpha) : alpha; };
-                inline void setAlpha(float alpha) { this->alpha = alpha; };
-                inline void setAlpha(std::uint8_t alpha) { this->alpha = alpha / 255.0f; };
+                inline float getAlpha() const { return getParent().get() ? (getParent()->getAlpha() * getSetting().alpha) : getSetting().alpha; };
+                inline void setAlpha(float alpha) { getSetting().alpha = alpha; };
+                inline void setAlpha(std::uint8_t alpha) { getSetting().alpha = alpha / 255.0f; };
+                
+                inline const std::string &getName() const & { return name; };
+                inline std::string &&getName() && { return std::move(name); };
                 
                 inline ofPoint &getPosition() { return position; };
                 inline ofPoint getPosition() const { return position; };
@@ -225,10 +281,7 @@ namespace bbb {
                 inline void move(const ofPoint &p) { position += p; }
                 inline void move(float x, float y) { position.x += x, position.y += y; }
                 
-                inline const std::string &getName() const & { return name; };
-                inline std::string &&getName() && { return std::move(name); };
-                
-                inline float &getWidth() { return width; };
+                inline float &getWidth() { return getSetting().frame.width; };
                 inline float getWidth() const { return width; };
                 
                 inline float &getHeight() { return height; };
@@ -253,7 +306,7 @@ namespace bbb {
                 inline ofPoint center() const { return topLeft() + ofPoint(width * 0.5f, height * 0.5f); };
                 
                 void draw() const {
-                    if(!isVisible) return;
+                    if(!isShown()) return;
                     pushState();
                     ofTranslate(position);
                     drawBackground();
@@ -280,20 +333,23 @@ namespace bbb {
                     ofRemoveListener(events.windowResized, this, &view::windowResizedRoot);
                 }
             protected:
+                setting setting_;
+                bool isClickedNow_{false};
+                
                 void mousePressed(ofMouseEventArgs &arg) {
-                    if(!isVisible) return;
+                    if(!isShown()) return;
                     clickDown(ofPoint(arg.x, arg.y));
                 }
                 void mouseReleased(ofMouseEventArgs &arg) {
-                    if(!isVisible) return;
+                    if(!isShown()) return;
                     clickUp(ofPoint(arg.x, arg.y));
                 }
                 void mouseMoved(ofMouseEventArgs &arg) {
-                    if(!isVisible) return;
+                    if(!isShown()) return;
                     mouseOver(ofPoint(arg.x, arg.y));
                 }
                 void mouseDragged(ofMouseEventArgs &arg) {
-                    if(!isVisible) return;
+                    if(!isShown()) return;
                     mouseOver(ofPoint(arg.x, arg.y));
                 }
                 void windowResizedRoot(ofResizeEventArgs &arg) {
@@ -301,9 +357,9 @@ namespace bbb {
                 }
                 
                 inline bool clickDown(const ofPoint &p) {
-                    if(!isVisible) return false;
+                    if(!isShown()) return false;
                     for(auto &&subview : subviews) if(subview->clickDown(p)) return true;
-                    if(isEnabledUserInteraction_ && isInside(p)) {
+                    if(isEnabledUserInteraction() && isInside(p)) {
                         isClickedNow_ = true;
                         clickDownCallback({shared_from_this(), p, false});
                         return !isEventTransparent();
@@ -312,9 +368,9 @@ namespace bbb {
                 }
                 
                 inline bool clickUp(const ofPoint &p) {
-                    if(!isVisible) return false;
+                    if(!isShown()) return false;
                     for(auto &&subview : subviews) if(subview->clickUp(p)) return true;
-                    if((isEnabledUserInteraction_ && isInside(p)) || isClickedNow_) {
+                    if((isEnabledUserInteraction() && isInside(p)) || isClickedNow_) {
                         isClickedNow_ = false;
                         clickUpCallback({shared_from_this(), p, false});
                         return !isEventTransparent();
@@ -323,9 +379,9 @@ namespace bbb {
                 }
                 
                 inline void mouseOver(const ofPoint &p) {
-                    if(!isVisible) return;
+                    if(!isShown()) return;
                     for(auto &&subview : subviews) subview->mouseOver(p);
-                    if((isEnabledUserInteraction_ && isInside(p))) {
+                    if((isEnabledUserInteraction() && isInside(p))) {
                         mouseOverCallback({shared_from_this(), p, false});
                     }
                 }
@@ -341,11 +397,11 @@ namespace bbb {
                 }
                 
                 inline void drawBackground() const {
-                    if(0.0f < backgroundColor.a * getAlpha()) {
-                        auto &&c = ofFloatColor(backgroundColor.r,
-                                                backgroundColor.g,
-                                                backgroundColor.b,
-                                                backgroundColor.a * getAlpha());
+                    if(0.0f < getBackgroundColor().a * getAlpha()) {
+                        auto &&c = ofFloatColor(getBackgroundColor().r,
+                                                getBackgroundColor().g,
+                                                getBackgroundColor().b,
+                                                getBackgroundColor().a * getAlpha());
                         ofSetColor(c);
                         ofDrawRectangle(0.0f, 0.0f, width, height);
                     }
@@ -372,9 +428,6 @@ namespace bbb {
                 float width;
                 float height;
                 
-                ofFloatColor backgroundColor{0.0f, 0.0f, 0.0f, 0.0f};
-                float alpha{1.0f};
-                
                 std::function<void(mouse_event_arg)> clickDownCallback{mouse_default};
                 std::function<void(mouse_event_arg)> clickUpCallback{mouse_default};
                 std::function<void(mouse_event_arg)> mouseOverCallback{mouse_default};
@@ -385,26 +438,33 @@ namespace bbb {
                 std::string name{""};
                 std::vector<view::ref> subviews;
                 std::weak_ptr<view> parent{};
-                
-                bool isVisible{true};
-                bool isEventTransparent_{false};
-                bool isEnabledUserInteraction_{true};
-                bool isClickedNow_{false};
             };
             
             struct image : public view {
                 using ref = std::shared_ptr<image>;
                 
                 struct setting : public view::setting {
-                    boost::filesystem::path imagePath;
+                    setting(const ofRectangle &rect = {}, const layout::margin &margin = {})
+                    : view::setting(rect, margin) {};
+                    setting(boost::filesystem::path imagePath, const ofRectangle &rect, const layout::margin &margin = {})
+                    : view::setting(rect, margin)
+                    , imagePath(imagePath) {};
+                    setting(const view::setting &setting)
+                    : view::setting(setting) {};
+                    
+                    boost::filesystem::path imagePath{"didn't load from file"};
                 };
+                
+                inline static image::ref create(const setting &setting_) {
+                    return create(setting_);
+                }
                 
                 inline static image::ref create() {
                     return create(0.0f, 0.0f, 0.0f, 0.0f);
                 }
                 
                 inline static image::ref create(const ofRectangle &rect) {
-                    return create(rect.x, rect.y, rect.width, rect.height);
+                    return create(setting(rect));
                 }
                 
                 inline static image::ref create(float x, float y, float width, float height) {
@@ -431,8 +491,8 @@ namespace bbb {
                 virtual ~image() {};
                 
                 inline void fitToImage() {
-                    width = image_.getWidth();
-                    height = image_.getHeight();
+                    getWidth() = image_.getWidth();
+                    getHeight() = image_.getHeight();
                 }
                 
                 virtual void drawSpecific() const override {
@@ -457,37 +517,47 @@ namespace bbb {
             struct drawer : public view {
                 using ref = std::shared_ptr<drawer>;
                 using const_ref = std::shared_ptr<const drawer>;
+                
+                struct setting : public view::setting {
+                    setting(const ofRectangle &rect = {}, const layout::margin &margin = {})
+                    : view::setting(rect, margin) {};
+                    setting(const view::setting &setting)
+                    : view::setting(setting) {};
+                };
 
-                inline static drawer::ref create() {
-                    return create(0.0f, 0.0f, 0.0f, 0.0f);
+                inline static drawer::ref create(float x, float y, float width, float height) {
+                    return create({ofRectangle(x, y, width, height)});
                 }
                 
                 inline static drawer::ref create(const ofRectangle &rect) {
-                    return create(rect.x, rect.y, rect.width, rect.height);
+                    return create({rect});
                 }
-                
-                inline static drawer::ref create(float x, float y, float width, float height) {
-                    return std::make_shared<drawer>(x, y, width, height);
-                }
-                
-                inline static drawer::ref create(std::function<void(drawer::const_ref)> callback, const ofRectangle &rect) {
-                    return create(callback, rect.x, rect.y, rect.width, rect.height);
-                };
                 
                 inline static drawer::ref create(std::function<void(drawer::const_ref)> callback, float x, float y, float width, float height) {
-                    return std::make_shared<drawer>(callback, x, y, width, height);
+                    return create(callback, {ofRectangle(x, y, width, height)});
                 }
 
-                inline drawer() {};
-                inline drawer(std::function<void(drawer::const_ref)> callback, float x, float y, float width, float height)
-                    : view(x, y, width, height)
+                inline static drawer::ref create(std::function<void(drawer::const_ref)> callback, const ofRectangle &rect) {
+                    return create(callback, {rect});
+                };
+                
+                inline static drawer::ref create(std::function<void(drawer::const_ref)> callback, const setting &setting_) {
+                    return std::make_shared<drawer>(callback, setting_);
+                };
+                
+                inline static drawer::ref create(const drawer::setting &setting_ = {}) {
+                    return std::make_shared<drawer>(setting_);
+                }
+                
+                inline drawer(std::function<void(drawer::const_ref)> callback, const setting &setting_ = {})
+                    : view(setting_)
                     , drawCallback(callback)
                 {};
-                inline drawer(float x, float y, float width, float height)
-                    : view(x, y, width, height)
+                inline drawer(const setting &setting_ = {})
+                    : view(setting_)
                 {};
                 
-                void setDrawCallback(std::function<void(drawer::const_ref)> callback) {
+                void onDraw(std::function<void(drawer::const_ref)> callback) {
                     drawCallback = callback;
                 }
                 
@@ -497,6 +567,7 @@ namespace bbb {
                 
             protected:
                 std::function<void(drawer::const_ref)> drawCallback{[](drawer::const_ref){}};
+                setting setting_;
             };
         }; // components
         using namespace components;
