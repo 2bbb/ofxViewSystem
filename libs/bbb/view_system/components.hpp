@@ -314,7 +314,7 @@ namespace bbb {
 
                 inline float setSize(float width, float height) {
                     getSetting().frame.width = width;
-                    getSetting().frame.height = width;
+                    getSetting().frame.height = height;
                     calculateLayout();
                 }
                 

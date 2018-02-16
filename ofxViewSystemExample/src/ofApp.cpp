@@ -78,7 +78,7 @@ class ofApp : public ofBaseApp {
         
         subview->add(close_button_tag, closeButton);
         subview->onWindowResized([](bbb::vs::resized_event_arg arg) {
-            auto v = arg.target;
+            auto &v = arg.target;
             v->setSize(arg.rect.width, arg.rect.height);
             v->getSubview(close_button_tag)->setPosition({v->getWidth() - 10.0f, -10.0f});
         });
