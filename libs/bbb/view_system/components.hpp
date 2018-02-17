@@ -241,12 +241,12 @@ namespace bbb {
                 inline bool isClickedNow() const { return isClickedNow_; };
                 
                 inline ofPoint convertToLocalCoordinate(ofPoint p = ofPoint()) const {
-                    for(auto v = this; v != nullptr; v = v->parent.lock().get()) p -= v->position;
+                    for(auto v = this; v != nullptr; v = v->parent.lock().get()) p -= v->position - ofPoint(v->getSetting().margin.left, v->getSetting().margin.top);
                     return p;
                 }
                 
                 inline ofPoint convertToGlobalCoordinate(ofPoint p = ofPoint()) const {
-                    for(auto v = this; v != nullptr; v = v->parent.lock().get()) p += v->position;
+                    for(auto v = this; v != nullptr; v = v->parent.lock().get()) p += v->position + ofPoint(v->getSetting().margin.left, v->getSetting().margin.top);
                     return p;
                 }
                 
@@ -267,7 +267,11 @@ namespace bbb {
                 }
                 
                 inline bool isInside(const ofPoint &p) const {
-                    return ofRectangle(topLeft(), width, height).inside(p);
+                    auto &margin = getSetting().margin;
+                    ofLogNotice() << "isInside " << getName();
+                    ofLogNotice() << "  " << ofRectangle(topLeft() + ofPoint(margin.left, margin.top), width - (margin.left + margin.right), height + (margin.top - margin.bottom)) << " " << p;
+
+                    return ofRectangle(topLeft() + ofPoint(margin.left, margin.top), width - (margin.left + margin.right), height + (margin.top - margin.bottom)).inside(p);
                 }
                 
                 template <typename integer_t>
@@ -312,7 +316,7 @@ namespace bbb {
                     calculateLayout();
                 };
 
-                inline float setSize(float width, float height) {
+                inline void setSize(float width, float height) {
                     getSetting().frame.width = width;
                     getSetting().frame.height = height;
                     calculateLayout();
