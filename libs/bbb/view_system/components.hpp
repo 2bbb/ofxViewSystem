@@ -462,23 +462,23 @@ namespace bbb {
                 setting setting_;
                 bool isClickedNow_{false};
                 
-                void mousePressed(ofMouseEventArgs &arg) {
+                inline void mousePressed(ofMouseEventArgs &arg) {
                     if(!isShown()) return;
                     clickDown(ofPoint(arg.x, arg.y));
                 }
-                void mouseReleased(ofMouseEventArgs &arg) {
+                inline void mouseReleased(ofMouseEventArgs &arg) {
                     if(!isShown()) return;
                     clickUp(ofPoint(arg.x, arg.y));
                 }
-                void mouseMoved(ofMouseEventArgs &arg) {
+                inline void mouseMoved(ofMouseEventArgs &arg) {
                     if(!isShown()) return;
                     mouseOver(ofPoint(arg.x, arg.y));
                 }
-                void mouseDragged(ofMouseEventArgs &arg) {
+                inline void mouseDragged(ofMouseEventArgs &arg) {
                     if(!isShown()) return;
                     mouseOver(ofPoint(arg.x, arg.y));
                 }
-                void windowResizedRoot(ofResizeEventArgs &arg) {
+                inline void windowResizedRoot(ofResizeEventArgs &arg) {
                     windowResized({shared_from_this(), {ofPoint(), (float)arg.width, (float)arg.height}});
                 }
                 
