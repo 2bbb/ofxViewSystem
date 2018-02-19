@@ -9,9 +9,11 @@ struct CustomView : public bbb::vs::view {
     : bbb::vs::view(setting)
     {}
     virtual void drawInternal() override {
-        const float w = getWidth(), h = getHeight(), d = (w - h) * 0.5f;
         ofSetColor(0, 255, 0, getAlpha() * 255.0f);
-        const float t = ofGetElapsedTimef();
+        const float w = getWidth(),
+                    h = getHeight(),
+                    d = (w - h) * 0.5f,
+                    t = ofGetElapsedTimef();
         for(float x = 0.0f; x < 2.0f * M_PI; x += 0.01f) {
             const float z = std::cos(1.3 * x + 1.1f * t) * 0.5f;
             ofDrawLine((z * std::cos(0.3f * x + 1.3f * t) + 0.5f) * h + d,
@@ -51,6 +53,7 @@ class ofApp : public ofBaseApp {
             }
         });
         root->registerEvents();
+        addSubview();
     }
     
     bbb::vs::view::ref createCloseButton() const {
@@ -100,7 +103,6 @@ class ofApp : public ofBaseApp {
 public:
     void setup() override {
         setupRootView();
-        addSubview();
         ofSetBackgroundColor(0, 0, 0);
     }
     void draw() override {
