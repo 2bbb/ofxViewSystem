@@ -53,7 +53,7 @@ namespace bbb {
             };
         };
         
-        namespace components {
+        inline namespace components {
             struct view;
             using view_ref = std::shared_ptr<view>;
             
@@ -622,7 +622,6 @@ namespace bbb {
                 setting setting_;
             };
         }; // components
-        using namespace components;
     }; // view_system
     namespace vs = view_system;
 }; // bbb
