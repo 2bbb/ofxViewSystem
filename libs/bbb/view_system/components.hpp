@@ -378,6 +378,9 @@ namespace bbb {
                 inline void move(const ofPoint &p) { position += p; }
                 inline void move(float x, float y) { position.x += x, position.y += y; }
                 
+                inline const ofRectangle &getFrame() const { return setting_.frame; };
+                inline ofRectangle getBounds() const { return {0, 0, width, height}; };
+
                 inline float getWidth() const { return width; };
                 inline void setWidth(float width) {
                     getSetting().frame.width = width;

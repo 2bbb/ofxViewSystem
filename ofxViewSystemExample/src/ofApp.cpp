@@ -78,7 +78,7 @@ class ofApp : public ofBaseApp {
     
     bbb::vs::view::ref createSubView() const {
         static const char subview_moving_animation_name[] = "subview_move";
-        bbb::vs::view::setting setting = bbb::vs::view::setting(ofRectangle(0, 0, root->getWidth(), root->getHeight()))
+        bbb::vs::view::setting setting = bbb::vs::view::setting(root->getBounds())
             .setMargin(80.0f)
             .setBackgroundColor(1.0f, 1.0f, 1.0f, 0.5f)
             .setEventTransparent(true);
