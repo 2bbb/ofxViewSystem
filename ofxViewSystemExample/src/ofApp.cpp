@@ -5,7 +5,7 @@ constexpr char subview_tag[] = "subview";
 constexpr char close_button_tag[] = "close_button";
 
 struct CustomView : public bbb::vs::view {
-    CustomView(const bbb::vs::view::setting &setting)
+    CustomView(const setting &setting)
     : bbb::vs::view(setting)
     {}
     virtual void drawInternal() override {
