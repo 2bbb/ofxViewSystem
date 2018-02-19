@@ -24,28 +24,34 @@ namespace bbb {
         
         namespace layout {
             struct margin {
-                margin(float top, float right, float bottom, float left)
+                inline margin(const margin &) = default;
+                inline margin(float top, float right, float bottom, float left)
                 : top(top)
                 , right(right)
                 , bottom(bottom)
                 , left(left) {};
-                margin(float top, float h, float bottom)
+                inline margin(float top, float h, float bottom)
                 : margin(top, h, bottom, h) {};
-                margin(float v, float h)
+                inline margin(float v, float h)
                 : margin(v, h, v, h) {};
-                margin(float m = 0.0f)
+                inline margin(float m = 0.0f)
                 : margin(m, m, m, m) {};
                 
-                inline void set(float margin) { set(margin, margin, margin, margin); };
-                inline void set(float vertical, float horizontal) { set(vertical, horizontal, vertical, horizontal); };
-                inline void set(float top, float h, float bottom) { set(top, h, bottom, h); };
-                inline void set(float top, float right, float bottom, float left) {
+                inline margin &operator=(const margin &) = default;
+                inline margin &operator=(float m) { return set(m); };
+                
+                inline margin &set(const margin &m) { return operator=(m); };
+                inline margin &set(float margin) { return set(margin, margin, margin, margin); };
+                inline margin &set(float vertical, float horizontal) { return set(vertical, horizontal, vertical, horizontal); };
+                inline margin &set(float top, float h, float bottom) { return set(top, h, bottom, h); };
+                inline margin &set(float top, float right, float bottom, float left) {
                     this->top = top;
                     this->right = right;
                     this->bottom = bottom;
                     this->left = left;
+                    return *this;
                 };
-
+                
                 float top;
                 float right;
                 float bottom;
@@ -90,6 +96,15 @@ namespace bbb {
             static void resized_default(resized_event_arg arg);
             static void fitToParent(resized_event_arg arg);
             
+            namespace detail {
+                template <typename type, typename default_type>
+                using return_type_t = typename std::conditional<
+                    std::is_same<void, type>::value,
+                    default_type,
+                    type
+                >::type;
+            }
+            
             struct view : public std::enable_shared_from_this<view> {
                 using ref = std::shared_ptr<view>;
                 using const_ref = std::shared_ptr<const view>;
@@ -103,33 +118,92 @@ namespace bbb {
                 inline static ofPoint mouseDelta() {
                     return mousePosition() - previouseMousePosition();
                 }
+                
+                template <typename type>
+                struct setting_base {
+                    using self_type = detail::return_type_t<type, setting_base>;
+                    inline self_type &self() { return reinterpret_cast<self_type &>(*this); };
 
-                struct setting {
-                    setting(float x, float y, float width, float height, const layout::margin &margin = {})
+                    inline setting_base(float x, float y, float width, float height, const layout::margin &margin = {})
                     : frame(x, y, width, height)
                     , margin(margin) {};
                     
-                    setting(const ofRectangle &frame = {}, const layout::margin &margin = {})
-                    : setting(frame.x, frame.y, frame.width, frame.height, margin) {};
+                    inline setting_base(const ofRectangle &frame = {}, const layout::margin &margin = {})
+                    : setting_base(frame.x, frame.y, frame.width, frame.height, margin) {};
                     
+                    inline setting_base(const setting_base &) = default;
+                    template <typename _>
+                    inline setting_base(const setting_base<_> &setting) { operator=(setting); };
+                    
+                    inline setting_base &operator=(const setting_base &) = default;
+                    inline setting_base &operator=(setting_base &&) = default;
+                    template <typename _>
+                    inline setting_base &operator=(const setting_base<_> &setting) {
+                        frame = setting.frame;
+                        margin = setting.margin;
+                        isVisible = setting.isVisible;
+                        isEventTransparent = setting.isEventTransparent;
+                        isEnabledUserInteraction = setting.isEnabledUserInteraction;
+                        isResizable = setting.isResizable;
+                        backgroundColor = setting.backgroundColor;
+                        alpha = setting.alpha;
+                        return *this;
+                    }
+                    
+                    template <typename ... arguments>
+                    inline self_type &setFrame(arguments && ... args) {
+                        frame.set(std::forward<arguments>(args) ...);
+                        return self();
+                    }
+                    
+                    template <typename ... arguments>
+                    inline self_type &setMargin(arguments && ... args) {
+                        margin.set(std::forward<arguments>(args) ...);
+                        return self();
+                    }
+                    
+                    template <typename ... arguments>
+                    inline self_type &setBackgroundColor(arguments && ... vals) {
+                        backgroundColor.set(std::forward<arguments>(vals) ...);
+                        return self();
+                    }
+                    
+                    inline self_type &setVisible(bool isVisible) {
+                        this->isVisible = isVisible;
+                        return self();
+                    }
+                    inline self_type &setEventTransparent(bool isEventTransparent) {
+                        this->isEventTransparent = isEventTransparent;
+                        return self();
+                    }
+                    inline self_type &setEnableUserInteraction(bool isEnabledUserInteraction) {
+                        this->isEnabledUserInteraction = isEnabledUserInteraction;
+                        return self();
+                    }
+                    inline self_type &setResizable(bool isResizable) {
+                        this->isResizable = isResizable;
+                        return self();
+                    }
+
                     ofRectangle frame{0.0f, 0.0f, 0.0f, 0.0f};
                     layout::margin margin{0.0f};
-                    
+                    ofFloatColor backgroundColor{0.0f, 0.0f, 0.0f, 0.0f};
+                    float alpha{1.0f};
+
                     bool isVisible{true};
                     bool isEventTransparent{false};
                     bool isEnabledUserInteraction{true};
                     bool isResizable{false};
-                    
-                    ofFloatColor backgroundColor{0.0f, 0.0f, 0.0f, 0.0f};
-                    float alpha{1.0f};
                 };
                 
-                inline static view::ref create(const ofRectangle &rect, const layout::margin &margin = {0.0f}) {
-                    return create({rect, margin});
+                using setting = setting_base<void>;
+                
+                inline static view::ref create(const ofRectangle &rect) {
+                    return create({rect});
                 }
                 
-                inline static view::ref create(float x, float y, float width, float height, const layout::margin &margin = {}) {
-                    return create({{x, y, width, height}, margin});
+                inline static view::ref create(float x, float y, float width, float height) {
+                    return create({ofRectangle(x, y, width, height)});
                 };
                 
                 inline static view::ref create(const view::setting &setting_ = {}) {
@@ -137,13 +211,15 @@ namespace bbb {
                 }
                 
                 inline view() {};
-                inline view(const view::setting &setting_)
+                template <typename _>
+                inline view(const view::setting_base<_> &setting_)
                 : setting_(setting_)
                 , position(setting_.frame.position)
                 {
                     calculateLayout();
                 };
-                inline view(view::setting &&setting_)
+                template <typename _>
+                inline view(view::setting_base<_> &&setting_)
                 : setting_(std::move(setting_))
                 , position(setting_.frame.position)
                 {
@@ -151,13 +227,16 @@ namespace bbb {
                 };
 
                 inline view(float x, float y, float width, float height, const layout::margin &margin = {})
-                : view({{x, y, width, height}, margin})
+                : view(setting({x, y, width, height}, margin))
                 {};
                 
                 virtual ~view() {
                     unregisterEvents();
                 };
                 
+                inline setting &getSetting() { return setting_; }
+                inline const setting &getSetting() const { return setting_; }
+
                 inline void add(const std::string &name, view::ref v) {
                     if(v->parent.lock()) v->parent.lock()->remove(v);
                     remove(name);
@@ -206,9 +285,6 @@ namespace bbb {
                     else ofLogWarning() << "maybe this view [" << getName() << "] is root";
                 }
                 
-                inline setting &getSetting() { return setting_; }
-                inline const setting &getSetting() const { return setting_; }
-
                 inline void setOrigin(float x, float y) {
                     position.x = x;
                     position.y = y;
@@ -295,6 +371,7 @@ namespace bbb {
                 
                 inline ofPoint &getPosition() { return position; };
                 inline ofPoint getPosition() const { return position; };
+                inline void setPosition(float x, float y) { position.set(x, y); }
                 inline void setPosition(const ofPoint &p) { position = p; }
                 inline void moveTo(const ofPoint &p) { position = p; }
                 inline void moveTo(float x, float y) { position.set(x, y); }
@@ -351,12 +428,12 @@ namespace bbb {
                 inline ofPoint bottomRight() const { return topLeft() + ofPoint(width, height); };
                 inline ofPoint center() const { return topLeft() + ofPoint(width * 0.5f, height * 0.5f); };
                 
-                void draw() const {
+                void draw() {
                     if(!isShown()) return;
                     pushState();
                     ofTranslate(position + ofPoint(getSetting().margin.left, getSetting().margin.top));
                     drawBackground();
-                    drawSpecific();
+                    drawInternal();
                     drawSubviews();
                     popState();
                 }
@@ -457,16 +534,16 @@ namespace bbb {
                     for(auto &&v : subviews) v->draw();
                 }
                 
-                virtual void drawSpecific() const {};
+                virtual void drawInternal() {};
                 
                 inline void windowResized(resized_event_arg super_arg) {
-                    windowResizeSpecific(super_arg);
+                    windowResizeInternal(super_arg);
                     for(auto &&subview : subviews) {
                         subview->windowResized({subview, {position, width, height}});
                     }
                 }
                 
-                virtual void windowResizeSpecific(resized_event_arg arg) {
+                virtual void windowResizeInternal(resized_event_arg arg) {
                     windowResizedCallback(arg);
                 };
                 
@@ -495,59 +572,119 @@ namespace bbb {
             struct image : public view {
                 using ref = std::shared_ptr<image>;
                 
-                struct setting : public view::setting {
-                    setting(const ofRectangle &rect = {}, const layout::margin &margin = {})
-                    : view::setting(rect, margin) {};
-                    setting(boost::filesystem::path imagePath, const ofRectangle &rect, const layout::margin &margin = {})
-                    : view::setting(rect, margin)
-                    , imagePath(imagePath) {};
-                    setting(const view::setting &setting)
-                    : view::setting(setting) {};
+                template <typename type>
+                struct setting_base : public view::setting_base<setting_base<type>> {
+                    using super_type = view::setting_base<setting_base<type>>;
+                    using self_type = detail::return_type_t<type, setting_base>;
+                    inline self_type &self() { return reinterpret_cast<self_type &>(*this); };
+
+                    using super_type::super_type;
                     
-                    boost::filesystem::path imagePath{"didn't load from file"};
+                    inline setting_base(const boost::filesystem::path &imagePath,
+                                        const ofRectangle &frame = {},
+                                        const layout::margin &margin = {})
+                    : super_type(frame, margin)
+                    , imagePath(imagePath) {};
+                    
+                    inline setting_base(const setting_base &) = default;
+                    template <typename _>
+                    inline setting_base(const setting_base<_> &setting) { operator=(setting); };
+                    
+                    inline setting_base &operator=(const setting_base &) = default;
+                    inline setting_base &operator=(setting_base &&) = default;
+                    template <typename _>
+                    inline setting_base &operator=(const setting_base<_> &setting) {
+                        super_type::operator=(setting);
+                        imagePath = setting.imagePath;
+                        return *this;
+                    }
+                    
+                    inline self_type &setImagePath(const boost::filesystem::path &imagePath) {
+                        this->imagePath = imagePath;
+                        return self();
+                    };
+                    boost::filesystem::path imagePath{""};
                 };
                 
-                inline static image::ref create(const setting &setting_) {
-                    return create(setting_);
-                }
+                using setting = setting_base<void>;
                 
-                inline static image::ref create() {
-                    return create(0.0f, 0.0f, 0.0f, 0.0f);
+                inline static image::ref create(const setting &setting_ = setting()) {
+                    return std::make_shared<image>(setting_);
                 }
                 
                 inline static image::ref create(const ofRectangle &rect) {
                     return create(setting(rect));
                 }
                 
-                inline static image::ref create(float x, float y, float width, float height) {
-                    return std::make_shared<image>(x, y, width, height);
+                inline static image::ref create(float x, float y,
+                                                float width, float height)
+                {
+                    return create(ofRectangle(x, y, width, height));
                 }
                 
-                inline static image::ref create(ofImage image_, const ofRectangle &rect) {
-                    return create(image_, rect.x, rect.y, rect.width, rect.height);
+                inline static image::ref create(const ofImage &image_,
+                                                const setting &setting_ = setting())
+                {
+                    return std::make_shared<image>(image_, setting_);
                 };
                 
-                inline static image::ref create(ofImage image_, float x, float y, float width, float height) {
-                    return std::make_shared<image>(image_, x, y, width, height);
+                inline static image::ref create(const ofImage &image_,
+                                                const ofRectangle &rect)
+                {
+                    return create(image_, setting(rect));
+                };
+                
+                inline static image::ref create(const ofImage &image_,
+                                                float x, float y,
+                                                float width, float height)
+                {
+                    return create(image_, ofRectangle(x, y, width, height));
                 }
                 
-                inline image() {};
-                inline image(ofImage image_, float x, float y, float width, float height)
-                    : view(x, y, width, height)
+                inline static image::ref create(const boost::filesystem::path &imagePath,
+                                                const setting &setting_ = setting())
+                {
+                    setting setting__(setting_);
+                    setting__.imagePath = imagePath;
+                    return std::make_shared<image>(setting__);
+                };
+                
+                inline static image::ref create(const boost::filesystem::path &imagePath,
+                                                const ofRectangle &rect)
+                {
+                    return create(imagePath, setting(rect));
+                };
+                
+                inline static image::ref create(const boost::filesystem::path &imagePath,
+                                                float x, float y,
+                                                float width, float height)
+                {
+                    return create(imagePath, ofRectangle(x, y, width, height));
+                }
+                
+                inline image() = default;
+                inline image(const ofImage &image_, const setting &setting_)
+                    : view(setting_)
+                    , setting_(setting_)
                     , image_(image_)
                 {};
-                inline image(float x, float y, float width, float height)
-                    : view(x, y, width, height)
+                inline image(const setting &setting_)
+                    : view(setting_)
+                    , setting_(setting_)
+                    , image_(setting_.imagePath)
                 {};
-                
+
                 virtual ~image() {};
+                
+                inline setting &getSetting() { return setting_; }
+                inline const setting &getSetting() const { return setting_; }
                 
                 inline void fitToImage() {
                     setWidth(image_.getWidth());
                     setHeight(image_.getHeight());
                 }
                 
-                virtual void drawSpecific() const override {
+                virtual void drawInternal() override {
                     if(image_.isAllocated()) {
                         ofSetColor(ofColor::white);
                         image_.draw(0.0f, 0.0f, width, height);
@@ -558,25 +695,58 @@ namespace bbb {
                 inline ofImage &&getImage() && { return std::move(image_); };
                 inline operator const ofImage &() const & { return image_; };
                 inline operator ofImage &&() && { return std::move(image_); };
+                
                 inline bool load(const boost::filesystem::path &path) {
+                    setting_.imagePath = path;
                     return image_.load(path);
                 }
                 
             protected:
+                setting setting_;
                 ofImage image_;
             };
             
             struct drawer : public view {
                 using ref = std::shared_ptr<drawer>;
                 using const_ref = std::shared_ptr<const drawer>;
-                
-                struct setting : public view::setting {
-                    setting(const ofRectangle &rect = {}, const layout::margin &margin = {})
-                    : view::setting(rect, margin) {};
-                    setting(const view::setting &setting)
-                    : view::setting(setting) {};
-                };
+                using drawCallback = std::function<void(drawer::const_ref)>;
 
+                template <typename type>
+                struct setting_base : public view::setting_base<setting_base<type>> {
+                    using super_type = view::setting_base<setting_base<type>>;
+                    using self_type = detail::return_type_t<type, setting_base>;
+                    inline self_type &self() { return reinterpret_cast<self_type &>(*this); };
+                    
+                    using super_type::super_type;
+                    
+                    inline setting_base(drawCallback callback,
+                                        const ofRectangle &frame = {},
+                                        const layout::margin &margin = {})
+                    : super_type(frame, margin)
+                    , callback(callback) {};
+                    
+                    inline setting_base(const setting_base &) = default;
+                    template <typename _>
+                    inline setting_base(const setting_base<_> &setting) { operator=(setting); };
+                    
+                    inline setting_base &operator=(const setting_base &) = default;
+                    inline setting_base &operator=(setting_base &&) = default;
+                    template <typename _>
+                    inline setting_base &operator=(const setting_base<_> &setting) {
+                        super_type::operator=(setting);
+                        callback = setting.callback;
+                        return *this;
+                    }
+                    
+                    inline self_type &setDrawer(drawCallback callback) {
+                        this->callback = callback;
+                        return self();
+                    }
+                    drawCallback callback{[](drawer::const_ref){}};
+                };
+                
+                using setting = setting_base<void>;
+                
                 inline static drawer::ref create(float x, float y, float width, float height) {
                     return create({ofRectangle(x, y, width, height)});
                 }
@@ -585,15 +755,15 @@ namespace bbb {
                     return create({rect});
                 }
                 
-                inline static drawer::ref create(std::function<void(drawer::const_ref)> callback, float x, float y, float width, float height) {
+                inline static drawer::ref create(drawCallback callback, float x, float y, float width, float height) {
                     return create(callback, {ofRectangle(x, y, width, height)});
                 }
 
-                inline static drawer::ref create(std::function<void(drawer::const_ref)> callback, const ofRectangle &rect) {
+                inline static drawer::ref create(drawCallback callback, const ofRectangle &rect) {
                     return create(callback, {rect});
                 };
                 
-                inline static drawer::ref create(std::function<void(drawer::const_ref)> callback, const setting &setting_) {
+                inline static drawer::ref create(drawCallback callback, const setting &setting_) {
                     return std::make_shared<drawer>(callback, setting_);
                 };
                 
@@ -601,25 +771,30 @@ namespace bbb {
                     return std::make_shared<drawer>(setting_);
                 }
                 
-                inline drawer(std::function<void(drawer::const_ref)> callback, const setting &setting_ = {})
+                inline drawer(drawCallback callback, const setting &setting_ = {})
                     : view(setting_)
-                    , drawCallback(callback)
+                    , callback(callback)
                 {};
                 inline drawer(const setting &setting_ = {})
                     : view(setting_)
                 {};
                 
-                void onDraw(std::function<void(drawer::const_ref)> callback) {
-                    drawCallback = callback;
+                virtual ~drawer() {};
+                
+                inline setting &getSetting() { return setting_; }
+                inline const setting &getSetting() const { return setting_; }
+                
+                virtual void drawInternal() override {
+                    callback(std::dynamic_pointer_cast<const drawer>(shared_from_this()));
                 }
                 
-                virtual void drawSpecific() const override {
-                    drawCallback(std::dynamic_pointer_cast<const drawer>(shared_from_this()));
+                inline void onDraw(drawCallback callback) {
+                    this->callback = callback;
                 }
                 
             protected:
-                std::function<void(drawer::const_ref)> drawCallback{[](drawer::const_ref){}};
                 setting setting_;
+                drawCallback callback{[](drawer::const_ref){}};
             };
         }; // components
     }; // view_system
