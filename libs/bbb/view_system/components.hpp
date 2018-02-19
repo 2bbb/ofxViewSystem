@@ -268,9 +268,6 @@ namespace bbb {
                 
                 inline bool isInside(const ofPoint &p) const {
                     auto &margin = getSetting().margin;
-                    ofLogNotice() << "isInside " << getName();
-                    ofLogNotice() << "  " << ofRectangle(topLeft() + ofPoint(margin.left, margin.top), width - (margin.left + margin.right), height + (margin.top - margin.bottom)) << " " << p;
-
                     return ofRectangle(topLeft() + ofPoint(margin.left, margin.top), width - (margin.left + margin.right), height + (margin.top - margin.bottom)).inside(p);
                 }
                 
