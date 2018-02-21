@@ -36,22 +36,34 @@ namespace bbb {
                 using ref = std::shared_ptr<view>;
                 using const_ref = std::shared_ptr<const view>;
                 
-                inline static ofPoint previouseMousePosition() {
-                    return ofPoint(ofGetPreviousMouseX(), ofGetPreviousMouseY());
-                }
-                inline static ofPoint mousePosition() {
-                    return ofPoint(ofGetMouseX(), ofGetMouseY());
-                }
-                inline static ofPoint mouseDelta() {
-                    return mousePosition() - previouseMousePosition();
-                }
+                inline static ofPoint previouseMousePosition()
+                { return ofPoint(ofGetPreviousMouseX(), ofGetPreviousMouseY()); };
+                inline static ofPoint mousePosition()
+                { return ofPoint(ofGetMouseX(), ofGetMouseY()); };
+                inline static ofPoint mouseDelta()
+                { return mousePosition() - previouseMousePosition(); };
                 
                 template <typename type>
                 struct setting_base {
+                    template <typename _>
+                    struct is_family : std::false_type {};
+                    template <typename _>
+                    struct is_family<setting_base<_>> : std::true_type {};
+
                     using self_type = type_utils::return_type_t<type, setting_base>;
                     inline self_type &self() { return reinterpret_cast<self_type &>(*this); };
                     
-                    inline setting_base(float x, float y, float width, float height, const layout::margin &margin = {})
+                    template <typename _>
+                    operator setting_base<_>&()
+                    { return reinterpret_cast<setting_base<_> &>(*this); };
+                    
+                    template <typename _>
+                    operator const setting_base<_>&() const
+                    { return reinterpret_cast<const setting_base<_> &>(*this); };
+
+                    inline setting_base(float x, float y,
+                                        float width, float height,
+                                        const layout::margin &margin = {})
                     : frame(x, y, width, height)
                     , margin(margin) {};
                     
@@ -59,23 +71,13 @@ namespace bbb {
                     : setting_base(frame.x, frame.y, frame.width, frame.height, margin) {};
                     
                     inline setting_base(const setting_base &) = default;
+                    inline setting_base(setting_base &&) = default;
                     template <typename _>
-                    inline setting_base(const setting_base<_> &setting) { operator=(setting); };
+                    inline setting_base(const setting_base<_> &setting_)
+                    : setting_base(setting_.operator const setting_base &()) {}
                     
                     inline setting_base &operator=(const setting_base &) = default;
                     inline setting_base &operator=(setting_base &&) = default;
-                    template <typename _>
-                    inline setting_base &operator=(const setting_base<_> &setting) {
-                        frame = setting.frame;
-                        margin = setting.margin;
-                        isVisible = setting.isVisible;
-                        isEventTransparent = setting.isEventTransparent;
-                        isEnabledUserInteraction = setting.isEnabledUserInteraction;
-                        isResizable = setting.isResizable;
-                        backgroundColor = setting.backgroundColor;
-                        alpha = setting.alpha;
-                        return *this;
-                    }
                     
                     template <typename ... arguments>
                     inline self_type &setFrame(arguments && ... args) {
@@ -125,37 +127,30 @@ namespace bbb {
                 
                 using setting = setting_base<void>;
                 
-                inline static view::ref create(const ofRectangle &rect) {
-                    return create({rect});
-                }
-                
-                inline static view::ref create(float x, float y, float width, float height) {
+                static view::ref create(float x, float y, float width, float height) {
                     return create({ofRectangle(x, y, width, height)});
                 };
                 
-                inline static view::ref create(const view::setting &setting_ = {}) {
-                    return std::make_shared<view>(setting_);
+                static view::ref create(const ofRectangle &rect) {
+                    return create({rect});
                 }
                 
-                inline view() {};
                 template <typename _>
-                inline view(const view::setting_base<_> &setting_)
+                static view::ref create(const setting_base<_> &setting_ = {}) {
+                    return std::make_shared<view>(setting_);
+                }
+
+                inline view() = default;
+                
+                inline view(const setting &setting_)
                 : setting_(setting_)
                 , position(setting_.frame.position)
-                {
-                    calculateLayout();
-                };
-                template <typename _>
-                inline view(view::setting_base<_> &&setting_)
+                { calculateLayout(); };
+                
+                inline view(setting &&setting_)
                 : setting_(std::move(setting_))
                 , position(setting_.frame.position)
-                {
-                    calculateLayout();
-                };
-                
-                inline view(float x, float y, float width, float height, const layout::margin &margin = {})
-                : view(setting({x, y, width, height}, margin))
-                {};
+                { calculateLayout(); };
                 
                 virtual ~view() {
                     unregisterEvents();
@@ -163,6 +158,18 @@ namespace bbb {
                 
                 inline setting &getSetting() { return setting_; }
                 inline const setting &getSetting() const { return setting_; }
+                
+                inline void setSetting(const setting &setting_) {
+                    this->position = setting_.frame.position;
+                    this->setting_ = setting_;
+                    calculateLayout();
+                };
+                
+                template <typename setting_t>
+                inline view &operator=(setting_t &&setting_) {
+                    setSetting(std::move(setting_));
+                    return *this;
+                };
                 
                 inline void add(const std::string &name, view::ref v) {
                     if(v->parent.lock()) v->parent.lock()->remove(v);
