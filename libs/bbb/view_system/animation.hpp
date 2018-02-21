@@ -16,6 +16,20 @@
 #include "ofEventUtils.h"
 
 namespace bbb {
+    template <typename t1, typename t2, typename t3, typename t4, typename t5>
+    auto pmap(t1 v, t2 imin, t3 imax, t4 omin, t5 omax)
+    -> decltype((v - imin) * (omax - omin) / (imax - imin) + omin)
+    {
+        if(omin == omax) return omin;
+        else if(imin == imax) return 0.5 * (omin + omax);
+        return (v - imin) * (omax - omin) / (imax - imin) + omin;
+    }
+    template <typename t1, typename t2, typename t3>
+    auto pmap(t1 v, t2 omin, t3 omax)
+    -> decltype(v * (omax - omin) + omin)
+    {
+        return (omin == omax) ? omin : (v * (omax - omin) + omin);
+    }
     namespace view_system {
         class animation {
             class manager {
@@ -110,7 +124,7 @@ namespace bbb {
             
             bool update(float time) {
                 if(time < startTime) return false;
-                float progress = ofMap(time, startTime, endTime, 0.0f, 1.0f, true);
+                float progress = (startTime == endTime) ? 1.0f : ofMap(time, startTime, endTime, 0.0f, 1.0f, true);
                 animationCallback(progress);
                 return 1.0f <= progress;
             }
