@@ -32,8 +32,10 @@ namespace bbb {
     }
     namespace view_system {
         class animation {
+            using ref = std::shared_ptr<animation>;
+            using const_ref = std::shared_ptr<animation>;
             class manager {
-                using animation_map = std::unordered_map<std::string, std::shared_ptr<animation>>;
+                using animation_map = std::unordered_map<std::string, animation::ref>;
                 animation_map animations;
                 manager() {
                     ofAddListener(ofEvents().update, this, &manager::update, OF_EVENT_ORDER_BEFORE_APP);
@@ -59,16 +61,24 @@ namespace bbb {
                     return _;
                 }
                 
-                inline void add(std::shared_ptr<animation> e, const std::string &label) {
+                inline void add(animation::ref e, const std::string &label) {
                     animations.insert(std::make_pair(label, e));
                 }
                 
                 inline void remove(const std::string &label) {
                     animations.erase(label);
                 }
+                
+                inline animation::ref find(const std::string &label) const {
+                    auto it = std::find_if(animations.begin(), animations.end(), [&label](const animation_map::value_type &pair) {
+                        return pair.first == label;
+                    });
+                    return (it == animations.end()) ? animation::ref() : it->second;
+                }
             };
-            
-            std::function<void(float perc)> animationCallback;
+            friend class manager;
+
+            std::function<void(float progress)> animationCallback;
             float duration, delay;
             std::string label;
             std::function<void(const std::string &)> callback;
@@ -95,7 +105,7 @@ namespace bbb {
                                    const std::string &label = "",
                                    const std::function<void(const std::string &)> &callback = [](const std::string &){})
             {
-                manager::get().add(std::shared_ptr<animation>(new animation(animationCallback, duration, delay, label, callback)), label);
+                manager::get().add(animation::ref(new animation(animationCallback, duration, delay, label, callback)), label);
             }
             inline static void add(std::function<void(float)> animationCallback,
                                    float duration,
