@@ -4,6 +4,8 @@
 //  Created by ISHII 2bit on 2018/02/21.
 //
 
+#pragma once
+
 #ifndef bbb_components_image_hpp
 #define bbb_components_image_hpp
 
