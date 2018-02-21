@@ -3,6 +3,7 @@
 
 constexpr char subview_tag[] = "subview";
 constexpr char close_button_tag[] = "close_button";
+constexpr char move_tag[] = "moving_animation";
 
 struct CustomView : public bbb::vs::view {
     CustomView(const setting &setting)
@@ -66,7 +67,7 @@ class ofApp : public ofBaseApp {
             auto &&subview = v->getParent();
             float alpha = subview->getAlpha();
             bbb::vs::animation::add([=](float progress) {
-                subview->setAlpha(ofMap(progress, 0.0f, 1.0f, alpha, 0.0f));
+                subview->setAlpha(bbb::pmap(progress, alpha, 0.0f));
             }, 0.5f, 0.0f, "remove_subview", [=](const std::string &name) {
                 subview->removeFromParent();
             });
@@ -95,11 +96,31 @@ class ofApp : public ofBaseApp {
         return subview;
     }
     
-    void addSubview() {
+    void addSubview(float initial_opacity = 1.0f) {
         if(root->find(subview_tag)) return;
-        root->add(subview_tag, createSubView());
+        auto &&subview = createSubView();
+        root->add(subview_tag, subview);
+        subview->setAlpha(initial_opacity);
+        bbb::vs::animation::add([=](float progress) {
+            subview->setAlpha(bbb::pmap(progress, initial_opacity, 1.0f));
+        }, 0.3f * (1.0f - initial_opacity));
     }
     
+    void moveUp() {
+        auto from = root->getPosition(),
+             to   = from + ofPoint(0, -100);
+        bbb::vs::animation::add([=](float progress) {
+            root->setPosition(from.getInterpolated(to, bbb::easing::quad::in(progress)));
+        }, 0.3f, move_tag);
+    }
+    
+    void moveDown() {
+        auto from = root->getPosition(),
+             to   = from + ofPoint(0, 100);
+        bbb::vs::animation::add([=](float progress) {
+            root->setPosition(from.getInterpolated(to, bbb::easing::quad::in(progress)));
+        }, 0.3f, move_tag);
+    }
 public:
     void setup() override {
         setupRootView();
@@ -115,7 +136,13 @@ public:
                 break;
             case 'R':
                 root->setPosition(0, 0);
-                addSubview();
+                addSubview(0.0f);
+                break;
+            case OF_KEY_UP:
+                moveUp();
+                break;
+            case OF_KEY_DOWN:
+                moveDown();
                 break;
             default:
                 break;
