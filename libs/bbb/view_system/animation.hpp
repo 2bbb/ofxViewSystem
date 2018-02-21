@@ -27,13 +27,12 @@ namespace bbb {
     template <typename t1, typename t2, typename t3>
     auto pmap(t1 v, t2 omin, t3 omax)
     -> decltype(v * (omax - omin) + omin)
-    {
-        return (omin == omax) ? omin : (v * (omax - omin) + omin);
-    }
+    { return (omin == omax) ? omin : (v * (omax - omin) + omin); };
+    
     namespace view_system {
         class animation {
             using ref = std::shared_ptr<animation>;
-            using const_ref = std::shared_ptr<animation>;
+            using const_ref = std::shared_ptr<const animation>;
             class manager {
                 using animation_map = std::unordered_map<std::string, animation::ref>;
                 animation_map animations;
