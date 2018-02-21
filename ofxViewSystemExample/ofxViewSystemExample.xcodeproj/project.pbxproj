@@ -44,6 +44,12 @@
 		5846E428563988E566F4F96C /* components.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = components.hpp; path = ../../../addons/ofxViewSystem/libs/bbb/view_system/components.hpp; sourceTree = SOURCE_ROOT; };
 		73705CFAE7DB82B182B854B7 /* view_system.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = view_system.hpp; path = ../../../addons/ofxViewSystem/libs/bbb/view_system.hpp; sourceTree = SOURCE_ROOT; };
 		7AE9658F6AC275354D30703C /* animation.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = animation.hpp; path = ../../../addons/ofxViewSystem/libs/bbb/view_system/animation.hpp; sourceTree = SOURCE_ROOT; };
+		9559D5E4203D7FB800644EB2 /* view.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = view.hpp; sourceTree = "<group>"; };
+		9559D5E5203D802800644EB2 /* image.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = image.hpp; sourceTree = "<group>"; };
+		9559D5E6203D80D100644EB2 /* drawer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = drawer.hpp; sourceTree = "<group>"; };
+		9559D5E7203D821000644EB2 /* events.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = events.hpp; sourceTree = "<group>"; };
+		9559D5E8203D82A300644EB2 /* type_utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = type_utils.hpp; sourceTree = "<group>"; };
+		9559D5E9203D84E300644EB2 /* layout.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = layout.hpp; path = ../libs/bbb/view_system/layout.hpp; sourceTree = "<group>"; };
 		C6E38B19297EAFB34DB6D17B /* easing.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = easing.hpp; path = ../../../addons/ofxViewSystem/libs/bbb/view_system/easing.hpp; sourceTree = SOURCE_ROOT; };
 		E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openFrameworksLib.xcodeproj; path = ../../../libs/openFrameworksCompiled/project/osx/openFrameworksLib.xcodeproj; sourceTree = SOURCE_ROOT; };
 		E4B69B5B0A3A1756003C02F2 /* ofxViewSystemExampleDebug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ofxViewSystemExampleDebug.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -90,11 +96,26 @@
 			name = bbb;
 			sourceTree = "<group>";
 		};
+		9559D5E3203D7FAB00644EB2 /* components */ = {
+			isa = PBXGroup;
+			children = (
+				9559D5E7203D821000644EB2 /* events.hpp */,
+				9559D5E4203D7FB800644EB2 /* view.hpp */,
+				9559D5E5203D802800644EB2 /* image.hpp */,
+				9559D5E6203D80D100644EB2 /* drawer.hpp */,
+				9559D5E8203D82A300644EB2 /* type_utils.hpp */,
+			);
+			name = components;
+			path = ../libs/bbb/view_system/components;
+			sourceTree = "<group>";
+		};
 		A34F12A5BE9A32BAA669BD30 /* view_system */ = {
 			isa = PBXGroup;
 			children = (
 				7AE9658F6AC275354D30703C /* animation.hpp */,
 				5846E428563988E566F4F96C /* components.hpp */,
+				9559D5E3203D7FAB00644EB2 /* components */,
+				9559D5E9203D84E300644EB2 /* layout.hpp */,
 				C6E38B19297EAFB34DB6D17B /* easing.hpp */,
 			);
 			name = view_system;
