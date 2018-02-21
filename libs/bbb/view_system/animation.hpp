@@ -79,7 +79,7 @@ namespace bbb {
                       const std::string &label,
                       const std::function<void(const std::string &)> &callback)
                 : animationCallback(animationCallback)
-                , duration(duration)
+                , duration(duration < 0.0f ? 0.0f : duration)
                 , delay(delay)
                 , callback(callback)
                 , label(label)
