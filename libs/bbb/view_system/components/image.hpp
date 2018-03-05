@@ -17,6 +17,7 @@ namespace bbb {
             struct image : public view {
                 using ref = std::shared_ptr<image>;
                 using const_ref = std::shared_ptr<const image>;
+                using image_ref = std::shared_ptr<ofImage>;
                 
                 template <typename type>
                 struct setting_base : public view::setting_base<setting_base<type>> {
@@ -68,12 +69,14 @@ namespace bbb {
                 
                 using setting = setting_base<void>;
                 
+                inline static image::ref create() { return std::make_shared<image>(); }
+                
                 template <typename _>
-                inline static image::ref create(const view::setting_base<_> &setting_ = {})
+                inline static image::ref create(const view::setting_base<_> &setting_)
                 { return std::make_shared<image>(setting_); }
                 
                 template <typename _>
-                inline static image::ref create(const setting_base<_> &setting_ = {})
+                inline static image::ref create(const setting_base<_> &setting_)
                 { return std::make_shared<image>(setting_); }
                 
                 inline static image::ref create(const ofRectangle &rect)
@@ -138,13 +141,13 @@ namespace bbb {
                 inline image(const ofImage &image_, const view::setting &setting_)
                 : view(setting_)
                 , setting_(setting_)
-                , image_(image_)
+                , image_(new ofImage(image_))
                 {};
                 
                 inline image(const ofImage &image_, const setting &setting_)
                 : view(setting_)
                 , setting_(setting_)
-                , image_(image_)
+                , image_(new ofImage(image_))
                 {};
                 
                 inline image(const view::setting &setting_)
@@ -155,7 +158,7 @@ namespace bbb {
                 inline image(const setting &setting_)
                 : view(setting_)
                 , setting_(setting_)
-                , image_(setting_.imagePath)
+                , image_(setting_.imagePath == "" ? new ofImage() : new ofImage(setting_.imagePath))
                 {};
                 
                 virtual ~image() {};
@@ -166,12 +169,12 @@ namespace bbb {
                 using view::setSetting;
                 inline void setSetting(const setting &setting_) {
                     this->setting_.imagePath = setting_.imagePath;
-                    image_.load(this->setting_.imagePath);
+                    load(setting_.imagePath);
                     view::setSetting(setting_);
                 };
                 inline void setSetting(setting &&setting_) {
                     this->setting_.imagePath = std::move(setting_.imagePath);
-                    image_.load(this->setting_.imagePath);
+                    load(setting_.imagePath);
                     view::setSetting(std::move(setting_));
                 };
                 
@@ -188,30 +191,42 @@ namespace bbb {
 #pragma mark specific
                 
                 inline void fitToImage() {
-                    setWidth(image_.getWidth());
-                    setHeight(image_.getHeight());
-                }
-                
-                virtual void drawInternal() override {
-                    if(image_.isAllocated()) {
-                        ofSetColor(ofColor::white);
-                        image_.draw(0.0f, 0.0f, width, height);
+                    if(image_) {
+                        setWidth(image_->getWidth());
+                        setHeight(image_->getHeight());
+                    } else {
+                        ofLogWarning() << "image isn't load";
                     }
                 }
                 
-                inline const ofImage &getImage() const & { return image_; };
-                inline ofImage &&getImage() && { return std::move(image_); };
-                inline operator const ofImage &() const & { return image_; };
-                inline operator ofImage &&() && { return std::move(image_); };
+                virtual void drawInternal() override {
+                    if(image_ && image_->isAllocated()) {
+                        ofSetColor(ofColor::white, (parent.lock() ? parent.lock()->getAlpha() : 1.0f) * 255.0f);
+                        image_->draw(0.0f, 0.0f, width, height);
+                    }
+                }
+                
+                inline const image_ref &getImageRef() const & { return image_; };
+                inline image_ref &&getImageRef() && { return std::move(image_); };
+                inline operator const image_ref &() const & { return image_; };
+                inline operator image_ref &&() && { return std::move(image_); };
+                
+//                inline const ofImage &getImage() const & { return *image_; };
+//                inline ofImage &&getImage() && { return std::move(*image_); };
+//                inline operator const ofImage &() const & { return *image_; };
+//                inline operator ofImage &&() && { return std::move(*image_); };
                 
                 inline bool load(const boost::filesystem::path &path) {
                     setting_.imagePath = path;
-                    return image_.load(path);
+                    if(!image_) image_ = std::make_shared<ofImage>();
+                    return image_->load(path);
                 }
+                
+                inline void setImage(image_ref image_) { this->image_ = image_; }
                 
             protected:
                 setting setting_;
-                ofImage image_;
+                std::shared_ptr<ofImage> image_;
             };
         }; // components
     }; // view_system

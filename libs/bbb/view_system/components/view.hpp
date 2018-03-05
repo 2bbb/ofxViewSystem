@@ -26,6 +26,11 @@
 namespace bbb {
     namespace view_system {
         inline namespace components {
+            template <typename view_type>
+            static inline std::shared_ptr<view_type> create(const typename view_type::setting &setting) {
+                return std::make_shared<view_type>(setting);
+            }
+            
             namespace { // make static
                 void mouse_default(mouse_event_arg);
                 void resized_default(resized_event_arg arg);
@@ -132,7 +137,7 @@ namespace bbb {
                 };
                 
                 static view::ref create(const ofRectangle &rect) {
-                    return create({rect});
+                    return create(setting{rect});
                 }
                 
                 template <typename _>
