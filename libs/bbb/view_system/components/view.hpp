@@ -204,7 +204,7 @@ namespace bbb {
                     });
                     auto &&end = subviews.end();
                     std::for_each(eraser, end, [](view::ref v) {
-                        v->parent.reset();
+                        if(v->parent.lock()) v->parent.reset();
                     });
                     subviews.erase(eraser, end);
                 }
@@ -213,7 +213,7 @@ namespace bbb {
                     auto &&eraser = std::remove(subviews.begin(), subviews.end(), v);
                     auto &&end = subviews.end();
                     std::for_each(eraser, end, [](view::ref v) {
-                        v->parent.reset();
+                        if(v && v->parent.lock()) v->parent.reset();
                     });
                     subviews.erase(eraser, end);
                 }
