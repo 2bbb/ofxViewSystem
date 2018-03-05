@@ -303,6 +303,7 @@ namespace bbb {
                 
                 inline float getParentAlpha() const { return getParent().get() ? getParent()->getAlpha() : 1.0f; };
                 inline float getAlpha() const { return getParentAlpha() * getSetting().alpha; };
+                inline float calcAlpha(float alpha = 1.0f) const { return getParentAlpha() * alpha; };
                 template <typename float_t>
                 inline auto setAlpha(float_t alpha)
                 -> typename std::enable_if<std::is_floating_point<float_t>::value>::type
