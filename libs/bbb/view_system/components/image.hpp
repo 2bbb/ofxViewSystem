@@ -201,7 +201,7 @@ namespace bbb {
                 
                 virtual void drawInternal() override {
                     if(image_ && image_->isAllocated()) {
-                        ofSetColor(ofColor::white, (parent.lock() ? parent.lock()->getAlpha() : 1.0f) * 255.0f);
+                        ofSetColor(ofColor::white, getParentAlpha() * 255.0f);
                         image_->draw(0.0f, 0.0f, width, height);
                     }
                 }

@@ -301,7 +301,8 @@ namespace bbb {
                 inline ofFloatColor &getBackgroundColor() { return getSetting().backgroundColor; };
                 inline const ofFloatColor &getBackgroundColor() const { return getSetting().backgroundColor; };
                 
-                inline float getAlpha() const { return getParent().get() ? (getParent()->getAlpha() * getSetting().alpha) : getSetting().alpha; };
+                inline float getParentAlpha() const { return getParent().get() ? getParent()->getAlpha() : 1.0f; };
+                inline float getAlpha() const { return getParentAlpha() * getSetting().alpha; };
                 template <typename float_t>
                 inline auto setAlpha(float_t alpha)
                 -> typename std::enable_if<std::is_floating_point<float_t>::value>::type
@@ -310,7 +311,7 @@ namespace bbb {
                 inline auto setAlpha(int_t alpha)
                 -> typename std::enable_if<std::is_integral<int_t>::value>::type
                 { getSetting().alpha = alpha / 255.0f; };
-                
+
                 inline const std::string &getName() const & { return name; };
                 inline std::string &&getName() && { return std::move(name); };
                 
