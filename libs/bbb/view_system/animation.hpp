@@ -49,7 +49,7 @@ namespace bbb {
                             it->second->finish();
                             it = animations.erase(it);
                         } else {
-                            it++;
+                            ++it;
                         }
                     }
                 }
