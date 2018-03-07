@@ -111,7 +111,7 @@ namespace bbb {
                                    const std::string &label,
                                    const std::function<void(const std::string &)> &callback = [](const std::string &){})
             {
-                add(animationCallback, duration, 0.0f, "", callback);
+                add(animationCallback, duration, 0.0f, label, callback);
             }
             inline static void add(std::function<void(float)> animationCallback,
                                    float duration,
