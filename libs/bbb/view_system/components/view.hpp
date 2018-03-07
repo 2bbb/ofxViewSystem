@@ -191,6 +191,77 @@ namespace bbb {
                     subviews.emplace_back(v);
                 }
                 
+                inline void insert_to_front_of(const std::string &name, view::ref v, view::ref target) {
+                    if(v->parent.lock()) v->parent.lock()->remove(v);
+                    remove(name);
+                    
+                    v->name = name;
+                    v->parent = shared_from_this();
+                    
+                    auto end = subviews.end();
+                    auto it = std::find(subviews.begin(), end, v);
+                    if(it == end) {
+                        ofLogWarning() << "can't find target";
+                        subviews.emplace_back(v);
+                    } else {
+                        subviews.insert(it + 1, v);
+                    }
+                }
+                inline void insert_to_front_of(const std::string &name, view::ref v, const std::string &target_name)
+                { insert_to_front_of(name, v, find(target_name)); };
+                
+                inline void insert_to_front_of(view::ref v, view::ref target) {
+                    if(v->parent.lock()) v->parent.lock()->remove(v);
+                    v->parent = shared_from_this();
+                    
+                    auto end = subviews.end();
+                    auto it = std::find(subviews.begin(), end, v);
+                    if(it == end) {
+                        ofLogWarning() << "can't find target";
+                        subviews.emplace_back(v);
+                    } else {
+                        subviews.insert(it + 1, v);
+                    }
+                }
+                inline void insert_to_front_of(view::ref v, const std::string &target_name)
+                { insert_to_front_of(v, find(target_name)); };
+
+                inline void insert_to_rear_of(const std::string &name, view::ref v, view::ref target) {
+                    if(v->parent.lock()) v->parent.lock()->remove(v);
+                    remove(name);
+                    
+                    v->name = name;
+                    v->parent = shared_from_this();
+                    
+                    auto end = subviews.end();
+                    auto it = std::find(subviews.begin(), end, v);
+                    if(it == end) {
+                        ofLogWarning() << "can't find target";
+                        subviews.emplace_back(v);
+                    } else {
+                        subviews.insert(it, v);
+                    }
+                }
+                inline void insert_to_rear_of(const std::string &name, view::ref v, const std::string &target_name)
+                { insert_to_rear_of(name, v, find(target_name)); };
+                
+                inline void insert_to_rear_of(view::ref v, view::ref target) {
+                    if(v->parent.lock()) v->parent.lock()->remove(v);
+                    v->parent = shared_from_this();
+                    
+                    auto end = subviews.end();
+                    auto it = std::find(subviews.begin(), end, v);
+                    if(it == end) {
+                        ofLogWarning() << "can't find target";
+                        subviews.emplace_back(v);
+                    } else {
+                        subviews.insert(it, v);
+                    }
+                }
+                
+                inline void insert_to_rear_of(view::ref v, const std::string &target_name)
+                { insert_to_rear_of(v, find(target_name)); };
+                
                 inline view::ref find(const std::string &name) const {
                     auto &&result = std::find_if(subviews.begin(), subviews.end(), [&](view::ref v) {
                         return v->name == name;
