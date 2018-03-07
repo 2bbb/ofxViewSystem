@@ -60,8 +60,9 @@ namespace bbb {
                     return _;
                 }
                 
-                inline void add(animation::ref e, const std::string &label) {
+                inline std::string add(animation::ref e, const std::string &label) {
                     animations.insert(std::make_pair(label, e));
+                    return label;
                 }
                 
                 inline void remove(const std::string &label) {
@@ -97,34 +98,38 @@ namespace bbb {
                 endTime = startTime + duration;
             }
             
+            static std::string unique_label() {
+                return "animation_" + std::to_string(rand());
+            }
+            
         public:
-            inline static void add(std::function<void(float)> animationCallback,
+            inline static std::string add(std::function<void(float)> animationCallback,
                                    float duration,
                                    float delay = 0.0f,
-                                   const std::string &label = "",
+                                   const std::string &label = unique_label(),
                                    const std::function<void(const std::string &)> &callback = [](const std::string &){})
             {
-                manager::get().add(animation::ref(new animation(animationCallback, duration, delay, label, callback)), label);
+                return manager::get().add(animation::ref(new animation(animationCallback, duration, delay, label, callback)), label);
             }
-            inline static void add(std::function<void(float)> animationCallback,
+            inline static std::string add(std::function<void(float)> animationCallback,
                                    float duration,
                                    const std::string &label,
                                    const std::function<void(const std::string &)> &callback = [](const std::string &){})
             {
-                add(animationCallback, duration, 0.0f, label, callback);
+                return add(animationCallback, duration, 0.0f, label, callback);
             }
-            inline static void add(std::function<void(float)> animationCallback,
+            inline static std::string add(std::function<void(float)> animationCallback,
                                    float duration,
                                    float delay,
                                    const std::function<void(const std::string &)> &callback)
             {
-                add(animationCallback, duration, delay, "", callback);
+                return add(animationCallback, duration, delay, unique_label(), callback);
             }
-            inline static void add(std::function<void(float)> animationCallback,
+            inline static std::string add(std::function<void(float)> animationCallback,
                                    float duration,
                                    const std::function<void(const std::string &)> &callback)
             {
-                add(animationCallback, duration, 0.0f, "", callback);
+                return add(animationCallback, duration, 0.0f, unique_label(), callback);
             }
             
             inline static void remove(const std::string &label) {
