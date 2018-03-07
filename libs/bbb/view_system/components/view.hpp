@@ -17,6 +17,7 @@
 #include "./events.hpp"
 #include "./type_utils.hpp"
 #include "../layout.hpp"
+#include "../animation.hpp"
 
 #include "ofEventUtils.h"
 #include "ofVectorMath.h"
@@ -150,11 +151,13 @@ namespace bbb {
                 inline view(const setting &setting_)
                 : setting_(setting_)
                 , position(setting_.frame.position)
+                , name("view_" + std::to_string(rand()))
                 { calculateLayout(); };
                 
                 inline view(setting &&setting_)
                 : setting_(std::move(setting_))
                 , position(setting_.frame.position)
+                , name("view_" + std::to_string(rand()))
                 { calculateLayout(); };
                 
                 virtual ~view() {
@@ -176,6 +179,8 @@ namespace bbb {
                     return *this;
                 };
                 
+#pragma mark operation about subviews
+                
                 inline void add(const std::string &name, view::ref v) {
                     if(v->parent.lock()) v->parent.lock()->remove(v);
                     remove(name);
@@ -187,6 +192,7 @@ namespace bbb {
                 
                 inline void add(view::ref v) {
                     if(v->parent.lock()) v->parent.lock()->remove(v);
+                    
                     v->parent = shared_from_this();
                     subviews.emplace_back(v);
                 }
@@ -303,8 +309,33 @@ namespace bbb {
                 
                 inline bool isShown() const { return getSetting().isVisible; };
                 inline void setVisible(bool isVisible) { getSetting().isVisible = isVisible; };
+                inline void fadeTo(float alpha,
+                                   float duration = 0.3f,
+                                   std::function<void(const std::string &)> finish = [](const std::string &) {})
+                {
+                    const std::string animation_name = getName() + "::fade_animation";
+                    const float current_alpha = getAlpha();
+                    animation::remove(animation_name);
+                    animation::add([=](float p) {
+                        ofLogNotice() << p << ", " << bbb::pmap(p, current_alpha, alpha);
+                        setAlpha(bbb::pmap(p, current_alpha, alpha));
+                    }, duration, animation_name, [=](const std::string &label) {
+                        ofLogNotice() << "finish";
+                        finish(label);
+                    });
+                };
                 inline void show() { setVisible(true); };
+                inline void fadeIn(float duration, std::function<void(const std::string &)> finish = [](const std::string &) {}) {
+                    show();
+                    fadeTo(1.0f, duration, finish);
+                };
                 inline void hide() { setVisible(false); };
+                inline void fadeOut(float duration, std::function<void(const std::string &)> finish = [](const std::string &) {}) {
+                    fadeTo(0.0f, duration, [=](const std::string &label) {
+                        finish(label);
+                        hide();
+                    });
+                };
                 
                 inline bool isResizable() const {
                     ofLogWarning() << "feature of resizing: not implemented";
