@@ -44,6 +44,7 @@
 		5846E428563988E566F4F96C /* components.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = components.hpp; path = ../../../addons/ofxViewSystem/libs/bbb/view_system/components.hpp; sourceTree = SOURCE_ROOT; };
 		73705CFAE7DB82B182B854B7 /* view_system.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = view_system.hpp; path = ../../../addons/ofxViewSystem/libs/bbb/view_system.hpp; sourceTree = SOURCE_ROOT; };
 		7AE9658F6AC275354D30703C /* animation.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = animation.hpp; path = ../../../addons/ofxViewSystem/libs/bbb/view_system/animation.hpp; sourceTree = SOURCE_ROOT; };
+		953562CE2052AFA40029F727 /* opt_arg_function.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = opt_arg_function.hpp; path = ../libs/bbb/view_system/opt_arg_function.hpp; sourceTree = "<group>"; };
 		9559D5E4203D7FB800644EB2 /* view.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = view.hpp; sourceTree = "<group>"; };
 		9559D5E5203D802800644EB2 /* image.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = image.hpp; sourceTree = "<group>"; };
 		9559D5E6203D80D100644EB2 /* drawer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = drawer.hpp; sourceTree = "<group>"; };
@@ -112,6 +113,7 @@
 		A34F12A5BE9A32BAA669BD30 /* view_system */ = {
 			isa = PBXGroup;
 			children = (
+				953562CE2052AFA40029F727 /* opt_arg_function.hpp */,
 				7AE9658F6AC275354D30703C /* animation.hpp */,
 				5846E428563988E566F4F96C /* components.hpp */,
 				9559D5E3203D7FAB00644EB2 /* components */,
