@@ -19,6 +19,8 @@
 #include "../layout.hpp"
 #include "../animation.hpp"
 
+#include "../opt_arg_function.hpp"
+
 #include "ofEventUtils.h"
 #include "ofVectorMath.h"
 #include "ofImage.h"
@@ -311,7 +313,7 @@ namespace bbb {
                 inline void setVisible(bool isVisible) { getSetting().isVisible = isVisible; };
                 inline void fadeTo(float alpha,
                                    float duration = 0.3f,
-                                   std::function<void(const std::string &)> finish = [](const std::string &) {})
+                                   bbb::opt_arg_function<void(const std::string &)> finish = [](const std::string &) {})
                 {
                     const std::string animation_name = getName() + "::fade_animation";
                     const float current_alpha = getAlpha();
@@ -325,12 +327,12 @@ namespace bbb {
                     });
                 };
                 inline void show() { setVisible(true); };
-                inline void fadeIn(float duration, std::function<void(const std::string &)> finish = [](const std::string &) {}) {
+                inline void fadeIn(float duration, bbb::opt_arg_function<void(const std::string &)> finish = [](const std::string &) {}) {
                     show();
                     fadeTo(1.0f, duration, finish);
                 };
                 inline void hide() { setVisible(false); };
-                inline void fadeOut(float duration, std::function<void(const std::string &)> finish = [](const std::string &) {}) {
+                inline void fadeOut(float duration, bbb::opt_arg_function<void(const std::string &)> finish = [](const std::string &) {}) {
                     fadeTo(0.0f, duration, [=](const std::string &label) {
                         finish(label);
                         hide();
@@ -367,19 +369,19 @@ namespace bbb {
                     return p;
                 }
                 
-                inline void onClickDown(std::function<void(mouse_event_arg)> callback) {
+                inline void onClickDown(bbb::opt_arg_function<void(mouse_event_arg)> callback) {
                     clickDownCallback = callback;
                 }
                 
-                inline void onClickUp(std::function<void(mouse_event_arg)> callback) {
+                inline void onClickUp(bbb::opt_arg_function<void(mouse_event_arg)> callback) {
                     clickUpCallback = callback;
                 }
                 
-                inline void onMouseOver(std::function<void(mouse_event_arg)> callback) {
+                inline void onMouseOver(bbb::opt_arg_function<void(mouse_event_arg)> callback) {
                     mouseOverCallback = callback;
                 }
                 
-                inline void onWindowResized(std::function<void(resized_event_arg)> callback) {
+                inline void onWindowResized(bbb::opt_arg_function<void(resized_event_arg)> callback) {
                     windowResizedCallback = callback;
                 }
                 
@@ -608,12 +610,12 @@ namespace bbb {
                 float width;
                 float height;
                 
-                std::function<void(mouse_event_arg)> clickDownCallback{mouse_default};
-                std::function<void(mouse_event_arg)> clickUpCallback{mouse_default};
-                std::function<void(mouse_event_arg)> mouseOverCallback{mouse_default};
-                std::function<void(mouse_event_arg)> draggedCallback{mouse_default};
+                bbb::opt_arg_function<void(mouse_event_arg)> clickDownCallback{mouse_default};
+                bbb::opt_arg_function<void(mouse_event_arg)> clickUpCallback{mouse_default};
+                bbb::opt_arg_function<void(mouse_event_arg)> mouseOverCallback{mouse_default};
+                bbb::opt_arg_function<void(mouse_event_arg)> draggedCallback{mouse_default};
                 
-                std::function<void(resized_event_arg)> windowResizedCallback{resized_default};
+                bbb::opt_arg_function<void(resized_event_arg)> windowResizedCallback{resized_default};
                 
                 std::string name{""};
                 std::vector<view::ref> subviews;

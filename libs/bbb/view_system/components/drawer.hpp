@@ -17,7 +17,7 @@ namespace bbb {
             struct drawer : public view {
                 using ref = std::shared_ptr<drawer>;
                 using const_ref = std::shared_ptr<const drawer>;
-                using drawCallback = std::function<void(drawer::const_ref)>;
+                using drawCallback = bbb::opt_arg_function<void(drawer::const_ref)>;
                 
                 template <typename type>
                 struct setting_base : public view::setting_base<setting_base<type>> {

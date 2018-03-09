@@ -13,6 +13,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "opt_arg_function.hpp"
+
 #include "ofEventUtils.h"
 
 namespace bbb {
@@ -81,13 +83,14 @@ namespace bbb {
             std::function<void(float progress)> animationCallback;
             float duration, delay;
             std::string label;
-            std::function<void(const std::string &)> callback;
+            bbb::opt_arg_function<void(const std::string &)> callback;
             float startTime, endTime;
+            
             animation(std::function<void(float progress)> animationCallback,
                       float duration,
                       float delay,
                       const std::string &label,
-                      const std::function<void(const std::string &)> &callback)
+                      const bbb::opt_arg_function<void(const std::string &)> &callback)
                 : animationCallback(animationCallback)
                 , duration(duration < 0.0f ? 0.0f : duration)
                 , delay(delay)
@@ -98,36 +101,36 @@ namespace bbb {
                 endTime = startTime + duration;
             }
             
-            static std::string unique_label() {
+            inline static std::string unique_label() {
                 return "animation_" + std::to_string(rand());
             }
             
         public:
             inline static std::string add(std::function<void(float)> animationCallback,
-                                   float duration,
-                                   float delay = 0.0f,
-                                   const std::string &label = unique_label(),
-                                   const std::function<void(const std::string &)> &callback = [](const std::string &){})
+                                          float duration,
+                                          float delay = 0.0f,
+                                          const std::string &label = unique_label(),
+                                          const bbb::opt_arg_function<void(const std::string &)> &callback = [](const std::string &){})
             {
                 return manager::get().add(animation::ref(new animation(animationCallback, duration, delay, label, callback)), label);
             }
             inline static std::string add(std::function<void(float)> animationCallback,
-                                   float duration,
-                                   const std::string &label,
-                                   const std::function<void(const std::string &)> &callback = [](const std::string &){})
+                                          float duration,
+                                          const std::string &label,
+                                          const bbb::opt_arg_function<void(const std::string &)> &callback = [](const std::string &){})
             {
                 return add(animationCallback, duration, 0.0f, label, callback);
             }
             inline static std::string add(std::function<void(float)> animationCallback,
-                                   float duration,
-                                   float delay,
-                                   const std::function<void(const std::string &)> &callback)
+                                          float duration,
+                                          float delay,
+                                          const bbb::opt_arg_function<void(const std::string &)> &callback)
             {
                 return add(animationCallback, duration, delay, unique_label(), callback);
             }
             inline static std::string add(std::function<void(float)> animationCallback,
-                                   float duration,
-                                   const std::function<void(const std::string &)> &callback)
+                                          float duration,
+                                          const bbb::opt_arg_function<void(const std::string &)> &callback)
             {
                 return add(animationCallback, duration, 0.0f, unique_label(), callback);
             }
