@@ -193,19 +193,23 @@ namespace bbb {
             template <typename ... other_arguments>
             res operator()(arguments ... args, other_arguments && ...) const { return f(std::forward<arguments>(args) ...); };
             
+            operator std::function<res(arguments ...)>() const { return f; };
+            
             template <typename ... other_arguments>
             operator std::function<res(arguments ..., other_arguments && ...)>() const {
                 auto &&f_ = f;
                 return [f_](arguments ... args, other_arguments && ...) -> res { return f_(args ...); };
             };
             
+            std::function<res(arguments ...)> as() const { return f; };
+            
             template <typename function_type_>
             std::function<function_type_> as() const { return std::function<function_type_>(*this); };
-            
         private:
             template <typename res_, typename ... arguments_, std::size_t ... indices>
-            static auto convert(std::function<res_(arguments_ ...)> f, index_sequence<indices ...> &&)
-            -> enable_if_t<sizeof...(arguments_) <= sizeof...(arguments), function_type>
+            static auto convert(std::function<res_(arguments_ ...)> f,
+                                index_sequence<indices ...> &&)
+                -> enable_if_t<sizeof...(arguments_) <= sizeof...(arguments), function_type>
             {
                 return [f](arguments ... args) {
                     return static_cast<res>(f(get<indices>(std::forward<arguments>(args) ...) ...));
@@ -214,8 +218,15 @@ namespace bbb {
             
             template <std::size_t index>
             static auto get(arguments ... args)
-            -> typename std::tuple_element<index, std::tuple<arguments ...>>::type
-            { return std::get<index>(std::tuple<arguments ...>(std::forward<arguments>(args) ...)); };
+                -> typename std::tuple_element<index, std::tuple<arguments && ...>>::type
+            {
+                return std::forward<
+                    typename std::tuple_element<
+                        index,
+                        std::tuple<arguments && ...>
+                    >::type
+                >(std::get<index>(std::tuple<arguments && ...>(std::forward<arguments>(args) ...)));
+            };
             
             function_type f;
         };
@@ -224,3 +235,4 @@ namespace bbb {
 };
 
 #endif /* bbb_opt_arg_function_hpp */
+
