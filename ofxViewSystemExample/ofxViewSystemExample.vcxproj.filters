@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\ofApp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ofApp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{d8376475-7454-4a24-b08a-aac121d3ad6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addons">
+      <UniqueIdentifier>{71834F65-F3A9-211E-73B8-DC85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addons\ofxViewSystem">
+      <UniqueIdentifier>{1D9747BB-C912-B617-5100-D11E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addons\ofxViewSystem\src">
+      <UniqueIdentifier>{6A838200-F071-5A7F-A699-7EAC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addons\ofxViewSystem\libs">
+      <UniqueIdentifier>{A2657C50-6B6D-632D-54C2-60E4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addons\ofxViewSystem\libs\bbb">
+      <UniqueIdentifier>{BECD3024-B415-0CBF-937E-B1B3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addons\ofxViewSystem\libs\bbb\view_system">
+      <UniqueIdentifier>{7A23C471-7EBC-6922-068D-486C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\addons\ofxViewSystem\src\ofxViewSystem.h">
+      <Filter>addons\ofxViewSystem\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxViewSystem\libs\bbb\view_system\animation.hpp">
+      <Filter>addons\ofxViewSystem\libs\bbb\view_system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxViewSystem\libs\bbb\view_system\components.hpp">
+      <Filter>addons\ofxViewSystem\libs\bbb\view_system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxViewSystem\libs\bbb\view_system\easing.hpp">
+      <Filter>addons\ofxViewSystem\libs\bbb\view_system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxViewSystem\libs\bbb\view_system.hpp">
+      <Filter>addons\ofxViewSystem\libs\bbb</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="icon.rc" />
+  </ItemGroup>
+</Project>
