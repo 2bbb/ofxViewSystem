@@ -64,7 +64,13 @@ namespace bbb {
                         this->imagePath = imagePath;
                         return self();
                     };
+                    template <typename ... args>
+                    inline self_type &setColor(args ... cs) {
+                        color.set(cs ...);
+                        return self();
+                    };
                     boost::filesystem::path imagePath{""};
+                    ofFloatColor color;
                 };
                 
                 using setting = setting_base<void>;
@@ -201,7 +207,7 @@ namespace bbb {
                 
                 virtual void drawInternal() override {
                     if(image_ && image_->isAllocated()) {
-                        ofSetColor(ofColor::white, getParentAlpha() * 255.0f);
+                        ofSetColor(setting_.color, setting_.color.a * 255.0f * getAlpha());
                         image_->draw(0.0f, 0.0f, width, height);
                     }
                 }
@@ -224,6 +230,13 @@ namespace bbb {
                 
                 inline void setImage(image_ref image_) { this->image_ = image_; }
                 
+                template <typename ... args>
+                inline void setColor(args ... cs)
+                { setting_.setColor(cs ...); };
+                
+                inline ofFloatColor &getColor() { return setting_.color; };
+                inline const ofFloatColor &getColor() const { return setting_.color; };
+
             protected:
                 setting setting_;
                 std::shared_ptr<ofImage> image_;

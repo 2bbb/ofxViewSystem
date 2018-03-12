@@ -10,6 +10,7 @@
 #define bbb_components_events_hpp
 
 #include <functional>
+#include "../opt_arg_function.hpp"
 #include <memory>
 
 #include "ofRectangle.h"
@@ -44,10 +45,10 @@ namespace bbb {
                 ofRectangle rect;
             };
             
-            using click_down_callback_t = std::function<void(mouse_event_arg)>;
-            using click_up_callback_t = std::function<void(mouse_event_arg)>;
-            using mouse_over_callback_t = std::function<void(mouse_event_arg)>;
-            using window_resized_callback_t = std::function<void(resized_event_arg)>;
+            using click_down_callback_t = bbb::opt_arg_function<void(mouse_event_arg)>;
+            using click_up_callback_t = bbb::opt_arg_function<void(mouse_event_arg)>;
+            using mouse_over_callback_t = bbb::opt_arg_function<void(mouse_event_arg)>;
+            using window_resized_callback_t = bbb::opt_arg_function<void(resized_event_arg)>;
         };
     };
 };

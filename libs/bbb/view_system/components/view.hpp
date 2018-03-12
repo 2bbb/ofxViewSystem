@@ -132,7 +132,54 @@ namespace bbb {
                     bool isEnabledUserInteraction{true};
                     bool isResizable{false};
                 };
+                struct traits {
+                    template <typename type>
+                    struct is_shared_ptr
+                    : std::false_type {};
+                    template <typename type>
+                    struct is_shared_ptr<std::shared_ptr<type>>
+                    : std::true_type {};
+                    
+                    template <typename type_>
+                    struct remove_shared_ptr
+                    { using type = type_; };
+                    template <typename type_>
+                    struct remove_shared_ptr<std::shared_ptr<type_>>
+                    { using type = type_; };
+                    
+                    template <typename type>
+                    using remove_shared_ptr_t = typename remove_shared_ptr<type>::type;
+                };
                 
+                template <typename inherited_view>
+                auto as(const inherited_view &)
+                    -> typename enable_if<
+                        !traits::is_shared_ptr<inherited_view>::value,
+                        std::shared_ptr<inherited_view>
+                    >::type
+                {
+                    return dynamic_pointer_cast<inherited_view>(shared_from_this());
+                };
+                template <typename inherited_view>
+                auto as()
+                    -> typename enable_if<
+                        !traits::is_shared_ptr<inherited_view>::value,
+                        std::shared_ptr<inherited_view>
+                    >::type
+                {
+                    return dynamic_pointer_cast<inherited_view>(shared_from_this());
+                };
+                template <typename inherited_view_ref>
+                auto as(inherited_view_ref = {})
+                    -> typename enable_if<
+                        traits::is_shared_ptr<inherited_view_ref>::value,
+                        inherited_view_ref
+                    >::type
+                {
+                    using type = traits::remove_shared_ptr_t<inherited_view_ref>;
+                    return dynamic_pointer_cast<type>(shared_from_this());
+                };
+
                 using setting = setting_base<void>;
                 
                 static view::ref create(float x, float y, float width, float height) {
@@ -199,7 +246,7 @@ namespace bbb {
                     subviews.emplace_back(v);
                 }
                 
-                inline void insert_to_front_of(const std::string &name, view::ref v, view::ref target) {
+                inline void insert_view_to_front_of(const std::string &name, view::ref v, view::ref target) {
                     if(v->parent.lock()) v->parent.lock()->remove(v);
                     remove(name);
                     
@@ -207,34 +254,34 @@ namespace bbb {
                     v->parent = shared_from_this();
                     
                     auto end = subviews.end();
-                    auto it = std::find(subviews.begin(), end, v);
+                    auto it = std::find(subviews.begin(), end, target);
                     if(it == end) {
-                        ofLogWarning() << "can't find target";
+                        ofLogWarning() << "can't find target from " << subviews.size() << "subview(s)";
                         subviews.emplace_back(v);
                     } else {
                         subviews.insert(it + 1, v);
                     }
                 }
-                inline void insert_to_front_of(const std::string &name, view::ref v, const std::string &target_name)
-                { insert_to_front_of(name, v, find(target_name)); };
+                inline void insert_view_to_front_of(const std::string &name, view::ref v, const std::string &target_name)
+                { insert_view_to_front_of(name, v, find(target_name)); };
                 
-                inline void insert_to_front_of(view::ref v, view::ref target) {
+                inline void insert_view_to_front_of(view::ref v, view::ref target) {
                     if(v->parent.lock()) v->parent.lock()->remove(v);
                     v->parent = shared_from_this();
                     
                     auto end = subviews.end();
-                    auto it = std::find(subviews.begin(), end, v);
+                    auto it = std::find(subviews.begin(), end, target);
                     if(it == end) {
-                        ofLogWarning() << "can't find target";
+                        ofLogWarning() << "can't find target from " << subviews.size() << "subview(s)";
                         subviews.emplace_back(v);
                     } else {
                         subviews.insert(it + 1, v);
                     }
                 }
-                inline void insert_to_front_of(view::ref v, const std::string &target_name)
-                { insert_to_front_of(v, find(target_name)); };
+                inline void insert_view_to_front_of(view::ref v, const std::string &target_name)
+                { insert_view_to_front_of(v, find(target_name)); };
 
-                inline void insert_to_rear_of(const std::string &name, view::ref v, view::ref target) {
+                inline void insert_view_to_rear_of(const std::string &name, view::ref v, view::ref target) {
                     if(v->parent.lock()) v->parent.lock()->remove(v);
                     remove(name);
                     
@@ -242,33 +289,33 @@ namespace bbb {
                     v->parent = shared_from_this();
                     
                     auto end = subviews.end();
-                    auto it = std::find(subviews.begin(), end, v);
+                    auto it = std::find(subviews.begin(), end, target);
                     if(it == end) {
-                        ofLogWarning() << "can't find target";
+                        ofLogWarning() << "can't find target from " << subviews.size() << "subview(s)";
                         subviews.emplace_back(v);
                     } else {
                         subviews.insert(it, v);
                     }
                 }
-                inline void insert_to_rear_of(const std::string &name, view::ref v, const std::string &target_name)
-                { insert_to_rear_of(name, v, find(target_name)); };
+                inline void insert_view_to_rear_of(const std::string &name, view::ref v, const std::string &target_name)
+                { insert_view_to_rear_of(name, v, find(target_name)); };
                 
-                inline void insert_to_rear_of(view::ref v, view::ref target) {
+                inline void insert_view_to_rear_of(view::ref v, view::ref target) {
                     if(v->parent.lock()) v->parent.lock()->remove(v);
                     v->parent = shared_from_this();
                     
                     auto end = subviews.end();
-                    auto it = std::find(subviews.begin(), end, v);
+                    auto it = std::find(subviews.begin(), end, target);
                     if(it == end) {
-                        ofLogWarning() << "can't find target";
+                        ofLogWarning() << "can't find target from " << subviews.size() << "subview(s)";
                         subviews.emplace_back(v);
                     } else {
                         subviews.insert(it, v);
                     }
                 }
                 
-                inline void insert_to_rear_of(view::ref v, const std::string &target_name)
-                { insert_to_rear_of(v, find(target_name)); };
+                inline void insert_view_to_rear_of(view::ref v, const std::string &target_name)
+                { insert_view_to_rear_of(v, find(target_name)); };
                 
                 inline view::ref find(const std::string &name) const {
                     auto &&result = std::find_if(subviews.begin(), subviews.end(), [&](view::ref v) {
@@ -319,10 +366,8 @@ namespace bbb {
                     const float current_alpha = getAlpha();
                     animation::remove(animation_name);
                     animation::add([=](float p) {
-                        ofLogNotice() << p << ", " << bbb::pmap(p, current_alpha, alpha);
                         setAlpha(bbb::pmap(p, current_alpha, alpha));
                     }, duration, animation_name, [=](const std::string &label) {
-                        ofLogNotice() << "finish";
                         finish(label);
                     });
                 };
@@ -467,11 +512,41 @@ namespace bbb {
                 inline view::ref getParent() { return parent.lock(); };
                 inline view::const_ref getParent() const { return parent.lock(); };
                 inline view::ref getSubview(const std::string &name) { return find(name); };
-                
+                template <typename type>
+                inline auto getSubviewAs(const std::string &name)
+                    -> decltype(find(name)->as<type>())
+                { return find(name)->as<type>(); };
+
                 inline float left() const { return convertToGlobalCoordinate().x; };
                 inline float right() const { return left() + width; };
                 inline float top() const { return convertToGlobalCoordinate().y; };
                 inline float bottom() const { return top() + height; };
+                
+                inline void setLeft(float left) { getPosition().x = left; };
+                inline void setRight(float right) { getPosition().x = right - getWidth(); };
+                inline void setTop(float top) { getPosition().y = top; };
+                inline void setBottom(float bottom) { getPosition().y = bottom - getHeight(); };
+
+                inline void setLeftStretch(float left) {
+                    float l = getPosition().x;
+                    setLeft(left);
+                    setWidth(getWidth() + l - left);
+                };
+                inline void setRightStretch(float right) {
+                    float r = getPosition().x + getWidth();
+                    setRight(right);
+                    setWidth(getWidth() + right - r);
+                };
+                inline void setTopStretch(float top) {
+                    float t = getPosition().y;
+                    setTop(top);
+                    setHeight(getHeight() + t - top);
+                };
+                inline void setBottomStretch(float bottom) {
+                    float b = getPosition().y + getHeight();
+                    setBottom(bottom);
+                    setHeight(getHeight() + bottom - b);
+                };
                 
                 inline float horizontalCenter() const { return left() + width * 0.5f; };
                 inline float verticalCenter() const { return top() + height * 0.5f; };
@@ -509,6 +584,7 @@ namespace bbb {
                     ofRemoveListener(events.mouseDragged, this, &view::mouseDragged);
                     ofRemoveListener(events.windowResized, this, &view::windowResizedRoot);
                 }
+                
             protected:
                 setting setting_;
                 bool isClickedNow_{false};
@@ -536,7 +612,9 @@ namespace bbb {
                 
                 inline bool clickDown(const ofPoint &p) {
                     if(!isShown()) return false;
-                    for(auto &&subview : subviews) if(subview->clickDown(p)) return true;
+                    for(auto subview = subviews.rbegin();
+                        subview != subviews.rend();
+                        ++subview) if((*subview)->clickDown(p)) return true;
                     if(isEnabledUserInteraction() && isInside(p)) {
                         if(!isClickedNow_) clickedPoint_ = std::make_shared<ofPoint>(p);
                         isClickedNow_ = true;
@@ -552,7 +630,9 @@ namespace bbb {
                     clickedPoint_.reset();
                     
                     if(!isShown()) return false;
-                    for(auto &&subview : subviews) if(subview->clickUp(p)) return true;
+                    for(auto subview = subviews.rbegin();
+                        subview != subviews.rend();
+                        ++subview) if((*subview)->clickUp(p)) return true;
                     if((isEnabledUserInteraction() && isInside(p)) || wasClicked) {
                         clickUpCallback({shared_from_this(), p, false});
                         return !isEventTransparent();
@@ -562,7 +642,9 @@ namespace bbb {
                 
                 inline void mouseOver(const ofPoint &p) {
                     if(!isShown()) return;
-                    for(auto &&subview : subviews) subview->mouseOver(p);
+                    for(auto subview = subviews.rbegin();
+                        subview != subviews.rend();
+                        ++subview) (*subview)->mouseOver(p);
                     if((isEnabledUserInteraction() && isInside(p))) {
                         mouseOverCallback({shared_from_this(), p, false});
                     }
