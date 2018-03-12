@@ -15,6 +15,8 @@
 
 #include "opt_arg_function.hpp"
 
+#include "ofEvent.h"
+#include "ofEvents.h"
 #include "ofEventUtils.h"
 
 namespace bbb {

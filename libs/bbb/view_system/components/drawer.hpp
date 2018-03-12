@@ -23,6 +23,7 @@ namespace bbb {
                 struct setting_base : public view::setting_base<setting_base<type>> {
                     using super_type = view::setting_base<setting_base<type>>;
                     
+					setting_base() {};
                     template <typename _>
                     struct is_family : std::false_type {};
                     template <typename _>
@@ -78,7 +79,7 @@ namespace bbb {
                     return create({rect});
                 }
                 
-                inline static drawer::ref create(const drawer::setting &setting_ = {}) {
+                inline static drawer::ref create(const drawer::setting &setting_ = drawer::setting()) {
                     return std::make_shared<drawer>(setting_);
                 }
                 
@@ -94,11 +95,11 @@ namespace bbb {
                     return std::make_shared<drawer>(callback, setting_);
                 };
                 
-                inline drawer(drawCallback callback, const setting &setting_ = {})
+                inline drawer(drawCallback callback, const setting &setting_ = setting())
                 : view(setting_)
                 , callback(callback)
                 {};
-                inline drawer(const setting &setting_ = {})
+                inline drawer(const setting &setting_ = setting())
                 : view(setting_)
                 {};
                 

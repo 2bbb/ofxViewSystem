@@ -68,7 +68,7 @@ namespace bbb {
             using index_sequence_for = make_index_sequence<sizeof...(types)>;
         };
         
-        inline namespace function_traits {
+        inline namespace function_traits_utils {
             template <typename>
             struct is_function
             : std::false_type {};

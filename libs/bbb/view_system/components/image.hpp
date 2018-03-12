@@ -30,6 +30,8 @@ namespace bbb {
                     using self_type = type_utils::return_type_t<type, setting_base>;
                     inline self_type &self() { return reinterpret_cast<self_type &>(*this); };
                     
+					setting_base() {};
+
                     template <typename _>
                     operator setting_base<_>&()
                     { return reinterpret_cast<setting_base<_> &>(*this); };
@@ -142,7 +144,7 @@ namespace bbb {
                     return create(imagePath, ofRectangle(x, y, width, height));
                 }
                 
-                inline image() = default;
+				inline image() {};
                 
                 inline image(const ofImage &image_, const view::setting &setting_)
                 : view(setting_)
