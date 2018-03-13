@@ -338,9 +338,9 @@ namespace bbb {
                 inline void remove(const view::ref &v) {
                     auto &&eraser = std::remove(subviews.begin(), subviews.end(), v);
                     auto &&end = subviews.end();
-                    std::for_each(eraser, end, [](view::ref v) {
-                        if(v && v->parent.lock()) v->parent.reset();
-                    });
+//                    std::for_each(eraser, end, [](view::ref v) {
+//                        if(v && v->parent.lock()) v->parent.reset();
+//                    });
                     subviews.erase(eraser, end);
                 }
                 
