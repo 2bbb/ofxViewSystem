@@ -585,6 +585,13 @@ namespace bbb {
                     ofRemoveListener(events.windowResized, this, &view::windowResizedRoot);
                 }
                 
+                void setForegroundColor(int r, int g, int b, int a = 255) {
+                    ofSetColor(r, g, b, getAlpha() * a);
+                }
+                void setForegroundColor(int gray, int a = 255) {
+                    ofSetColor(gray, gray, gray, getAlpha() * a);
+                }
+
             protected:
                 setting setting_;
                 bool isClickedNow_{false};
