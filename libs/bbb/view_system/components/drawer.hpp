@@ -72,11 +72,11 @@ namespace bbb {
                 using setting = setting_base<void>;
                 
                 inline static drawer::ref create(float x, float y, float width, float height) {
-                    return create({ofRectangle(x, y, width, height)});
+                    return create(ofRectangle(x, y, width, height));
                 }
                 
                 inline static drawer::ref create(const ofRectangle &rect) {
-                    return create({rect});
+                    return create(drawer::setting(rect));
                 }
                 
                 inline static drawer::ref create(const drawer::setting &setting_ = drawer::setting()) {
