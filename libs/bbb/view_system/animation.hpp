@@ -20,8 +20,15 @@
 #include "ofEventUtils.h"
 
 namespace bbb {
+    template <typename t1, typename t2, typename t3>
+    inline auto clamp(t1 v, t2 min, t3 max)
+    -> decltype(v + min + max)
+    {
+        using type = decltype(v + min + max);
+        return std::min<type>(std::max<type>(v, min), max);
+    }
     template <typename t1, typename t2, typename t3, typename t4, typename t5>
-    auto pmap(t1 v, t2 imin, t3 imax, t4 omin, t5 omax)
+    inline auto pmap(t1 v, t2 imin, t3 imax, t4 omin, t5 omax)
     -> decltype((v - imin) * (omax - omin) / (imax - imin) + omin)
     {
         if(omin == omax) return omin;
@@ -29,7 +36,7 @@ namespace bbb {
         return (v - imin) * (omax - omin) / (imax - imin) + omin;
     }
     template <typename t1, typename t2, typename t3>
-    auto pmap(t1 v, t2 omin, t3 omax)
+    inline auto pmap(t1 v, t2 omin, t3 omax)
     -> decltype(v * (omax - omin) + omin)
     { return (omin == omax) ? omin : (v * (omax - omin) + omin); };
     
