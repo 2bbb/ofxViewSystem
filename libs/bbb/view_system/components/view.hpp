@@ -557,7 +557,7 @@ namespace bbb {
                 inline ofPoint bottomRight() const { return topLeft() + ofPoint(width, height); };
                 inline ofPoint center() const { return topLeft() + ofPoint(width * 0.5f, height * 0.5f); };
                 
-                virtual void draw() final {
+                virtual void draw() {
                     if(!isShown()) return;
                     pushState();
                     ofTranslate(position + ofPoint(getSetting().margin.left, getSetting().margin.top));
