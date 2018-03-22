@@ -330,7 +330,7 @@ namespace bbb {
                     });
                     auto &&end = subviews.end();
                     std::for_each(eraser, end, [](view::ref v) {
-                        if(v->parent.lock()) v->parent.reset();
+//                        if(v->parent.lock()) v->parent.reset();
                     });
                     subviews.erase(eraser, end);
                 }
