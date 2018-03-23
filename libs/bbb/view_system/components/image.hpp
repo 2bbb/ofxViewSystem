@@ -77,6 +77,13 @@ namespace bbb {
                 
                 using setting = setting_base<void>;
                 
+                enum class scale_mode : std::uint8_t {
+                    fill,
+                    aspect_fit,
+                    aspect_fill,
+                    top_left
+                };
+                
                 inline static image::ref create() { return std::make_shared<image>(); }
                 
                 template <typename _>
@@ -210,7 +217,23 @@ namespace bbb {
                 virtual void drawInternal() override {
                     if(image_ && image_->isAllocated()) {
                         ofSetColor(setting_.color, setting_.color.a * 255.0f * getAlpha());
-                        image_->draw(0.0f, 0.0f, width, height);
+                        switch(scale_mode_) {
+                            case scale_mode::fill: {
+                                image_->draw(0.0f, 0.0f, width, height);
+                                break;
+                            }
+                            case scale_mode::top_left: {
+                                float w = std::min(getWidth(), width);
+                                float h = std::min(getHeight(), height);
+                                image_->getTexture().drawSubsection(0.0f, 0.0f, w, h,
+                                                                    0.0f, 0.0f, w, h);
+                                break;
+                            }
+                            default: {
+                                image_->draw(0.0f, 0.0f, width, height);
+                                break;
+                            }
+                        }
                     }
                 }
                 
@@ -238,8 +261,13 @@ namespace bbb {
                 
                 inline ofFloatColor &getColor() { return setting_.color; };
                 inline const ofFloatColor &getColor() const { return setting_.color; };
-
+                
+                scale_mode getScaleMode() const { return scale_mode_; };
+                inline void setScaleMode(scale_mode mode) { scale_mode_ = mode; };
+                
             protected:
+                scale_mode scale_mode_{scale_mode::fill};
+                
                 setting setting_;
                 std::shared_ptr<ofImage> image_;
             };
