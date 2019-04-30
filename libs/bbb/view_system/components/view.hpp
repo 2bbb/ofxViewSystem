@@ -29,6 +29,9 @@
 namespace bbb {
     namespace view_system {
         inline namespace components {
+            template <bool b, typename t>
+            using enable_if_t = typename std::enable_if<b, t>::type;
+            
             template <typename view_type>
             static inline std::shared_ptr<view_type> create(const typename view_type::setting &setting) {
                 return std::make_shared<view_type>(setting);
@@ -153,31 +156,31 @@ namespace bbb {
                 
                 template <typename inherited_view>
                 auto as(const inherited_view &)
-                    -> typename enable_if<
+                    -> enable_if_t<
                         !traits::is_shared_ptr<inherited_view>::value,
                         std::shared_ptr<inherited_view>
-                    >::type
+                    >
                 {
-                    return dynamic_pointer_cast<inherited_view>(shared_from_this());
+                    return std::dynamic_pointer_cast<inherited_view>(shared_from_this());
                 };
                 template <typename inherited_view>
                 auto as()
-                    -> typename enable_if<
+                    -> enable_if_t<
                         !traits::is_shared_ptr<inherited_view>::value,
                         std::shared_ptr<inherited_view>
-                    >::type
+                    >
                 {
-                    return dynamic_pointer_cast<inherited_view>(shared_from_this());
+                    return std::dynamic_pointer_cast<inherited_view>(shared_from_this());
                 };
                 template <typename inherited_view_ref>
                 auto as(inherited_view_ref = {})
-                    -> typename enable_if<
+                    -> enable_if_t<
                         traits::is_shared_ptr<inherited_view_ref>::value,
                         inherited_view_ref
-                    >::type
+                    >
                 {
                     using type = traits::remove_shared_ptr_t<inherited_view_ref>;
-                    return dynamic_pointer_cast<type>(shared_from_this());
+                    return std::dynamic_pointer_cast<type>(shared_from_this());
                 };
 
                 using setting = setting_base<void>;
